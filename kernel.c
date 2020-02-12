@@ -1,16 +1,19 @@
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
-void printString(char *string);
-void readString(char *string);
+void printString(char *string); //
+void readString(char *string); //
 void readSector(char *buffer, int sector);
 void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *filename, int *success);
-void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
+void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0 //
 void writeFile(char *buffer, char *filename, int *sectors);
 void executeProgram(char *filename, int segment, int *success);
 int doesFileNameExist(char* buffer, char* filename);
-int mod(int bil1, int bil2);
-int div(int bil1, int bil2);
+int mod(int bil1, int bil2); //
+int div(int bil1, int bil2); //
+
+
+char buff[1000];
 
 int main() {
 //     putInMemory(0xB000, 0x8000, 'h');
@@ -20,9 +23,13 @@ int main() {
 //   putInMemory(0xB000, 0x8004, 'l');
 //   putInMemory(0xB000, 0x8005, 0xD);
 
-interrupt(0x10, 0xe*256+'B',0,0,0);
-    readString();
-    //printString(buff);
+    printString("Masukkan pengguna : ");
+    readString(&buff);
+    interrupt(0x10, 0xe*256+'\r',0,0,0);
+    interrupt(0x10, 0xe*256+'\n',0,0,0);
+    printString(&buff);
+    clear(&buff, 1000);
+    printString(&buff);
 
   makeInterrupt21();
   while (1);
@@ -33,6 +40,8 @@ void printString(char *string){
     while(string[i] != '\0'){
         interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
         i++;
+
+
     }
 
 }
@@ -48,13 +57,15 @@ void readString(char* string){
     while (flag==0) {      
 
         int huruf = interrupt(0x16,0,0,0,0);
-         //Jika huruf masukkan adalah backspace
+         //Jika huruf masukkan adalah backspac
         if (huruf == 0x8 ) {
-            string[i]=0x0;
-            i--;
-            interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
-            interrupt(0x10, (0xe<<8)+0x0, 0, 0, 0); //jadiin nul
-            interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
+            if (i>=1) {
+                string[i]=0x0;
+                i--;
+                interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
+                interrupt(0x10, (0xe<<8)+0x0, 0, 0, 0); //jadiin nul
+                interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
+            }
   
         }
          //jika huruf masukkasn enter
@@ -140,20 +151,21 @@ void writeFile(char *buffer, char *filename, int *sectors) {
     }
 
     //Cek jumlah sektor di map cukup untuk buffer file
-    for(k = 0; k < (*sectors); k++) {
+    for(k = 0; k < 512; k++) {
         sector_num = 0;
 
-        while(map[sector_num] != 0x00) {
+        if(map[k] != 0x00) {
             sector_num++;
-        }
-
-        if(sector_num == 26) {
-            printString("Not enough directory space for the current file.");
-            return;
         }
     }
 
+    if(sector_num < *sectors) {
+        printString("Not enough directory space for the current file.");
+        return;
+    }
+
     //Bersihkan sektor yang akan digunakan untuk menyimpan nama
+    
 
     //Isi sektor pada dir dengan nama file
     while(filename[name_length] != 0x00 && filename[name_length] != '\0') {
