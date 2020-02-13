@@ -9,28 +9,36 @@ void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0 //
 void writeFile(char *buffer, char *filename, int *sectors);
 void executeProgram(char *filename, int segment, int *success);
 int doesFileNameExist(char* buffer, char* filename);
+//LaunchProgram
 int mod(int bil1, int bil2); //
 int div(int bil1, int bil2); //
+void logo();//
+void enter();
 
 
 char buff[1000];
+char pengguna[1000];
+char c[1000];
+int succ;
 
 int main() {
-//     putInMemory(0xB000, 0x8000, 'h');
-//   putInMemory(0xB000, 0x8001, 0xD);
-//   putInMemory(0xB000, 0x8002, 'a');
-//   putInMemory(0xB000, 0x8003, 0xD);
-//   putInMemory(0xB000, 0x8004, 'l');
-//   putInMemory(0xB000, 0x8005, 0xD);
-
+    logo();
+    enter();
+    enter();
     printString("Masukkan pengguna : ");
-    readString(&buff);
-    interrupt(0x10, 0xe*256+'\r',0,0,0);
-    interrupt(0x10, 0xe*256+'\n',0,0,0);
-    printString(&buff);
-    clear(&buff, 1000);
-    printString(&buff);
+    readString(&pengguna);
+    //writeFile(&pengguna,"Halo.c",&2);
+    readFile(&c,"Halo.c",&succ);
 
+    enter();
+
+    while(1) {
+         printString(&pengguna);
+         printString(": ");
+         readString(&buff);
+         enter();
+    }
+   
   makeInterrupt21();
   while (1);
 }
@@ -119,6 +127,7 @@ void readFile(char *buffer, char *filename, int *success) {
     }
 
     success = 1;
+    printString("Read File Success");
     return;
 }
 void clear(char *buffer, int length) {
@@ -265,4 +274,24 @@ int div(int bil1, int bil2){
     }
     return z-1;
 
+}
+
+void enter() {
+    interrupt(0x10, 0xe*256+'\r',0,0,0);
+    interrupt(0x10, 0xe*256+'\n',0,0,0);
+}
+void logo() {
+printString("          .dWeL  udWbL "); enter();
+printString("         :$$$$$.x$$$$$:"); enter();
+printString("     ... 9$$$$$E|$$$$$E  .."); enter();
+printString("    d$$$e`$$$$$F9$$$$$|o$$$N."); enter();
+printString("   d$$$$$kR$$$$~4$$$$$z$$$$$&"); enter();
+printString("   $$$$$$$/$$<  '$$$$&$$$$$$R"); enter();
+printString("   ^*$$$$$$|$$$  $$$F$$$$$$*"); enter();
+printString(" .uu.|R$$$$c$$E  $$$x$$$$P|.uu."); enter();
+printString("o$$$$$u?*$$$/$>  4$$$$$*)o$$$$$c"); enter();
+printString("$$$$$$$$oC#$b#   'F@$#)d$$$$$$$$"); enter();
+printString("*$$$$$$$$$NU#(    x#u$$$$$$$$$$P"); enter();
+printString(" |***$$$$$$$NU   .b$$$$$$$$***|"); enter();
+    
 }
