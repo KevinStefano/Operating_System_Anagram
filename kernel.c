@@ -9,42 +9,83 @@ void clear(char *buffer, int length); // Fungsi untuk mengisi buffer dengan 0 //
 void writeFile(char *buffer, char *filename, int *sectors);
 void executeProgram(char *filename, int segment, int *success);//
 int doesFileNameExist(char* buffer, char* filename);
-//LaunchProgram
 int mod(int bil1, int bil2); //
 int div(int bil1, int bil2); //
 void logo();//
 void enter();
 
-
+char input[100];
 char buff[1000];
+char buffs[10000];
 char pengguna[1000];
-char c[100];
-int succ;
-int sec = 0;
+char c[5] =  {'a','b','c','d'};
+int succ = 0;
+int sec = 10;
+
 int main() {
+    makeInterrupt21();
     logo();
     enter();
     enter();
-
-    writeFile(&c,"Halo.c",&sec);
+    printString("execute (e) atau baca file (b)");
     enter();
-    readFile(c,"Halo.c",&succ);
+    readString(input);
     enter();
-    printString("Masukkan pengguna : ");
-    readString(&pengguna);
-    enter();
-
-    while(1) {
-         printString(&pengguna);
-         printString(": ");
-         readString(&buff);
-         enter();
-         printString(&buff);
-         enter();
+    if (input[0]='e') {
+        executeProgram("milestone1",0x2000,&succ);
     }
-   
-  makeInterrupt21();
+    else {
+        readFile(buffs,"key.txt",&succ);
+        printString(buffs);
+        enter();
+
+    }
+    // enter();
+    // writeFile(c,"Halo.c",&sec);
+    // enter();
+    // readFile(c,"Halo.c",&succ);
+    // enter();
+    // printString("Masukkan pengguna : ");
+    // readString(pengguna);
+    // enter();
+
+    // while(1) {
+    //      printString(&pengguna);
+    //      printString(": ");
+    //      readString(&buff);
+    //      enter();
+    //      printString(&buff);
+    //      enter();
+    // }
   while (1);
+}
+
+void handleInterrupt21 (int AX, int BX, int CX, int DX){
+  switch (AX) {
+    case 0x0:
+      printString(BX);
+      break;
+    case 0x1:
+      readString(BX);
+      break;
+    case 0x2:
+      readSector(BX, CX);
+      break;
+    case 0x3:
+      writeSector(BX, CX);
+      break;
+    case 0x4:
+      readFile(BX, CX, DX);
+      break;
+    case 0x5:
+      writeFile(BX, CX, DX);
+      break;
+    case 0x6:
+      executeProgram(BX, CX, DX);
+      break;
+    default:
+      printString("Invalid interrupt");
+  }
 }
 void printString(char *string){
     int i = 0;
@@ -215,7 +256,7 @@ void writeFile(char *buffer, char *filename, int *sectors) {
             sub_buffer[l] = buffer[l*val];
         }
 
-        writeSector(sub_buffer,sector_num);
+        writeSector(sub_buffer,sector_idx);
     }
 
     writeSector(map,1);
@@ -232,7 +273,6 @@ void executeProgram(char *filename, int segment, int *success) {
         for(i = 0; i < 10240; i++) {
             putInMemory(segment, i, _buffer[i]);
         }
-
         launchProgram(segment);
     }
 }
