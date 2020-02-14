@@ -21,7 +21,6 @@ char pengguna[1000];
 char c[100];
 int succ;
 int sec = 0;
-sector_num
 int main() {
     logo();
     enter();
@@ -29,7 +28,7 @@ int main() {
 
     writeFile(&c,"Halo.c",&sec);
     enter();
-    readFile(&c,"Halo.c",&succ);
+    readFile(c,"Halo.c",&succ);
     enter();
     printString("Masukkan pengguna : ");
     readString(&pengguna);
@@ -47,7 +46,6 @@ int main() {
   makeInterrupt21();
   while (1);
 }
-void handleInterrupt21 (int AX, int BX, int CX, int DX){}
 void printString(char *string){
     int i = 0;
     while(string[i] != '\0'){
@@ -146,6 +144,7 @@ void writeFile(char *buffer, char *filename, int *sectors) {
     int dir_index, free_dir = 0, name_length = 0, sector_idx=0, name_difference, sector_num;
     int i,j,k,l;
     int val;
+    int buff_address = 0;
 
     //Baca sector map dan dir
     readSector(map,1);
@@ -172,12 +171,12 @@ void writeFile(char *buffer, char *filename, int *sectors) {
             sector_num++;
         }
     }
-    if(sector_num < sectors) {
+    if(sector_num < *sectors) {
         printString("Not enough directory space for the current file.");
         return;
     }
 
-    //Bersihka sektor yang akan digunakan
+    //Bersihkan sektor yang akan digunakan
 
     //Kopikan nama ke dir
     //Cari panjang dari nama file name terlebih dahulu
@@ -187,20 +186,19 @@ void writeFile(char *buffer, char *filename, int *sectors) {
 
 
     //Isi sektor pada dir dengan nama file
-    for(i = 0; i < name_length; j++) {
+    for(i = 0; i < name_length; i++) {
         dir[dir_index*32 + i] = filename[i];
     }
 
     //Buat belakangnya jadi 0x00
     if(name_length < 12) {
-        while(i < 12-name_length) {
-            dir[dir_index*32 + i+name_length] = 0x00;
+        while(i < 12) {
+            dir[dir_index*32 + i] = 0x00;
             i++;
         }
     }
 
     for(j = 0; j < (*sectors); j++) {
-
         //Cari sektor di map yang kosong
         while(map[sector_idx] != 0x00) {
             sector_idx++;
@@ -209,14 +207,15 @@ void writeFile(char *buffer, char *filename, int *sectors) {
         //Menandai di map
         map[sector_idx] = 0xFF;
 
+        //Tandai di dir
         dir[dir_index*32+12+j] = sector_idx;
 
         for(l = 0; l < 512; l++) {
             val = j+1;
-            sub_buffer[j] = buffer[j*val];
+            sub_buffer[l] = buffer[l*val];
         }
 
-        writeSector(sub_buffer, sector_idx);
+        writeSector(sub_buffer,sector_num);
     }
 
     writeSector(map,1);
