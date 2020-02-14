@@ -2,12 +2,12 @@
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string); //
 void readString(char *string); //
-void readSector(char *buffer, int sector);
-void writeSector(char *buffer, int sector);
+void readSector(char *buffer, int sector); //
+void writeSector(char *buffer, int sector); //
 void readFile(char *buffer, char *filename, int *success);
-void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0 //
+void clear(char *buffer, int length); // Fungsi untuk mengisi buffer dengan 0 //
 void writeFile(char *buffer, char *filename, int *sectors);
-void executeProgram(char *filename, int segment, int *success);
+void executeProgram(char *filename, int segment, int *success);//
 int doesFileNameExist(char* buffer, char* filename);
 //LaunchProgram
 int mod(int bil1, int bil2); //
@@ -18,24 +18,29 @@ void enter();
 
 char buff[1000];
 char pengguna[1000];
-char c[1000];
+char c[100];
 int succ;
-
+int sec = 0;
+sector_num
 int main() {
     logo();
     enter();
     enter();
+
+    writeFile(&c,"Halo.c",&sec);
+    enter();
+    readFile(&c,"Halo.c",&succ);
+    enter();
     printString("Masukkan pengguna : ");
     readString(&pengguna);
-    //writeFile(&pengguna,"Halo.c",&2);
-    readFile(&c,"Halo.c",&succ);
-
     enter();
 
     while(1) {
          printString(&pengguna);
          printString(": ");
          readString(&buff);
+         enter();
+         printString(&buff);
          enter();
     }
    
@@ -108,7 +113,7 @@ void readFile(char *buffer, char *filename, int *success) {
     file_exist = doesFileNameExist(buffer, filename);
 
     if(file_exist == 0) {
-        success = 0;
+        *success = 0;
         printString("File not found!");
         return;
     }
@@ -126,7 +131,7 @@ void readFile(char *buffer, char *filename, int *success) {
         j++;
     }
 
-    success = 1;
+    *success = 1;
     printString("Read File Success");
     return;
 }
@@ -138,7 +143,7 @@ void clear(char *buffer, int length) {
 }
 void writeFile(char *buffer, char *filename, int *sectors) {
     char map[512], dir[512], sub_buffer[512];
-    int dir_index, free_dir = 0, name_length = 0, sector_idx, name_difference, sector_num;
+    int dir_index, free_dir = 0, name_length = 0, sector_idx=0, name_difference, sector_num;
     int i,j,k,l;
     int val;
 
@@ -159,42 +164,42 @@ void writeFile(char *buffer, char *filename, int *sectors) {
         return;
     }
 
-    //Cek jumlah sektor di map cukup untuk buffer file
-    for(k = 0; k < 512; k++) {
-        sector_num = 0;
 
-        if(map[k] != 0x00) {
+    //Cek jumlah sektor di map cukup untuk buffer file
+    sector_num = 0;
+    for(k = 0; k < 512; k++) {
+        if(map[k] == 0x00) {
             sector_num++;
         }
     }
-
-    if(sector_num < *sectors) {
+    if(sector_num < sectors) {
         printString("Not enough directory space for the current file.");
         return;
     }
 
-    //Bersihkan sektor yang akan digunakan untuk menyimpan nama
-    
+    //Bersihka sektor yang akan digunakan
 
-    //Isi sektor pada dir dengan nama file
+    //Kopikan nama ke dir
+    //Cari panjang dari nama file name terlebih dahulu
     while(filename[name_length] != 0x00 && filename[name_length] != '\0') {
         name_length++;
     }
 
+
+    //Isi sektor pada dir dengan nama file
     for(i = 0; i < name_length; j++) {
         dir[dir_index*32 + i] = filename[i];
     }
 
+    //Buat belakangnya jadi 0x00
     if(name_length < 12) {
-        while(i < 12) {
-            dir[dir_index*32 + i] = 0x00;
+        while(i < 12-name_length) {
+            dir[dir_index*32 + i+name_length] = 0x00;
             i++;
         }
     }
 
-
     for(j = 0; j < (*sectors); j++) {
-        sector_idx = 0;
 
         //Cari sektor di map yang kosong
         while(map[sector_idx] != 0x00) {
@@ -216,6 +221,8 @@ void writeFile(char *buffer, char *filename, int *sectors) {
 
     writeSector(map,1);
     writeSector(dir,2);
+    printString("File accepted");
+
 }
 void executeProgram(char *filename, int segment, int *success) {
     char _buffer[10240];
@@ -285,13 +292,13 @@ printString("          .dWeL  udWbL "); enter();
 printString("         :$$$$$.x$$$$$:"); enter();
 printString("     ... 9$$$$$E|$$$$$E  .."); enter();
 printString("    d$$$e`$$$$$F9$$$$$|o$$$N."); enter();
-printString("   d$$$$$kR$$$$~4$$$$$z$$$$$&"); enter();
-printString("   $$$$$$$/$$<  '$$$$&$$$$$$R"); enter();
-printString("   ^*$$$$$$|$$$  $$$F$$$$$$*"); enter();
-printString(" .uu.|R$$$$c$$E  $$$x$$$$P|.uu."); enter();
-printString("o$$$$$u?*$$$/$>  4$$$$$*)o$$$$$c"); enter();
-printString("$$$$$$$$oC#$b#   'F@$#)d$$$$$$$$"); enter();
-printString("*$$$$$$$$$NU#(    x#u$$$$$$$$$$P"); enter();
-printString(" |***$$$$$$$NU   .b$$$$$$$$***|"); enter();
-    
+printString("   d$$$$$kR$$$---$$$$$z$$$$$&"); enter();
+printString("   $$$$$$$/$$<| |'$$$$&$$$$$$R"); enter();
+printString("   ^*$$$$$$|$$| |$$$F$$$$$$*"); enter();
+printString(" .uu.|R$$$$c$$| |$$$x$$$$P|.uu."); enter();
+printString("o$$$$$u?*$$$/$| |4$$$$$*)o$$$$$c"); enter();
+printString("$$$$$$$$oC#$b#| |#'F@$#)d$$$$$$$$"); enter();
+printString("*$$$$$$$$$NU#(| |)#x#u$$$$$$$$$$P"); enter();
+printString(" |***$$$$$$$NU| |UNb$$$$$$$$***|"); enter();
+printString(" -------------- ---------------- "); enter();
 }
