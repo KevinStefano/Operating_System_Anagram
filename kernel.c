@@ -40,23 +40,6 @@ int main() {
         enter();
 
     }
-    // enter();
-    // writeFile(c,"Halo.c",&sec);
-    // enter();
-    // readFile(c,"Halo.c",&succ);
-    // enter();
-    // printString("Masukkan pengguna : ");
-    // readString(pengguna);
-    // enter();
-
-    // while(1) {
-    //      printString(&pengguna);
-    //      printString(": ");
-    //      readString(&buff);
-    //      enter();
-    //      printString(&buff);
-    //      enter();
-    // }
   while (1);
 }
 
@@ -92,8 +75,6 @@ void printString(char *string){
     while(string[i] != '\0'){
         interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
         i++;
-
-
     }
 
 }
@@ -102,7 +83,6 @@ void readString(char* string){
     //Inisialisasi awal string
     int flag =0;
     int i=0;
-    string[i] =0xa;
 
     //Proses string selanjutnya
     //Dilakukan selama bukan enter
@@ -141,15 +121,16 @@ void writeSector(char *buffer, int sector) {
     interrupt(0x13, 0x301, buffer, div(sector, 36) * 0x100 + mod(sector,18) + 1, mod(div(sector,18), 2) * 0x100);
 }
 void readFile(char *buffer, char *filename, int *success) {
-    int sectors[21];
+    char sectors[21];
+    char dir[512];
     int file_exist;
     int i,j,buffer_address;
 
     //Baca sektor dir
-    readSector(buffer, 2);
+    readSector(dir, 2);
 
     //Mengecek nama file
-    file_exist = doesFileNameExist(buffer, filename);
+    for(i = 0; i < 16; i++);
 
     if(file_exist == 0) {
         *success = 0;
@@ -276,37 +257,37 @@ void executeProgram(char *filename, int segment, int *success) {
         launchProgram(segment);
     }
 }
-int doesFileNameExist(char* buffer, char* filename) {
-    int i,j,k;
-    int found = 0;
+// int doesFileNameExist(char* buffer, char* filename) {
+//     int i,j,k;
+//     int found = 0;
 
-    for(i = 0; i < 16; i++) {
-        if(buffer[32*i] != 0x00) {
-            for(j = 0; j < 12; j++) {
-                if(buffer[j+32] == '\n' || buffer[j+32] == '\r' || buffer[j+32] == 0x00 || filename[j] == '\n' || filename[j] == '\r' || filename[j] == 0x00) {
-                    break;
-                }
-                else if(buffer[j+32*i] == filename[j]) {
-                    found = 1;
-                }
-                else {
-                    found = 0;
-                    break;
-                }
-            }
-        }
-    }
+//     for(i = 0; i < 16; i++) {
+//         if(buffer[32*i] != 0x00) {
+//             for(j = 0; j < 12; j++) {
+//                 if(buffer[j+32] == '\n' || buffer[j+32] == '\r' || buffer[j+32] == 0x00 || filename[j] == '\n' || filename[j] == '\r' || filename[j] == 0x00) {
+//                     break;
+//                 }
+//                 else if(buffer[j+32*i] == filename[j]) {
+//                     found = 1;
+//                 }
+//                 else {
+//                     found = 0;
+//                     break;
+//                 }
+//             }
+//         }
+//     }
 
-    if(found) {
-        return i;
-    } 
+//     if(found) {
+//         return i;
+//     } 
     
-    for(k = 0; k < 10240; k++) {
-        buffer[k] = 0x00;
-    }
+//     for(k = 0; k < 10240; k++) {
+//         buffer[k] = 0x00;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 int mod(int bil1, int bil2){
     while(bil1 >= bil2){
         bil1 = bil1 - bil2;
