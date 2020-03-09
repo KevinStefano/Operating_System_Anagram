@@ -13,6 +13,12 @@ int div(int bil1, int bil2); //
 void logo();//
 void enter();
 
+void lengthString(char *stringInput, int *length_String);
+void countChar(char *stringInput, char c, int *count_Char);
+void isStringSame (char *stringInput1, char *stringInput2, int *output); //output bernilai 0/1 0 jika beda 1 jika sama
+void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjangKopian);
+void takeFileNameFromPath (char *path, char *dirPath, char *fileName);
+
 char input[100];
 char buff[1000];
 char buffs[10000];
@@ -351,5 +357,96 @@ printString("o$$$$$u?*$$$/$| |4$$$$$*)o$$$$$c"); enter();
 printString("$$$$$$$$oC#$b#| |#'F@$#)d$$$$$$$$"); enter();
 printString("*$$$$$$$$$NU#(| |)#x#u$$$$$$$$$$P"); enter();
 printString(" |***$$$$$$$NU| |UNb$$$$$$$$***|"); enter();
-printString(" -------------- ----------------- "); enter();
+printString(" -------------------------------- "); enter();
+}
+
+
+void lengthString(char *stringInput, int *length_String) {
+    int panjang = 0;
+    while (stringInput[panjang] != 0x00) {
+        panjang++;
+    }
+    *length_String = panjang;
+}
+
+void countChar(char *stringInput, char c, int *count_Char) {
+    int jumlah = 0;
+    int it= 0;
+    while (stringInput[it]!= 0x00) {
+        if (stringInput[it]!=c){
+            it++;
+        }
+        else {
+            jumlah ++;
+            it++;
+        }
+    }
+    *count_Char= jumlah;
+}
+
+void isStringSame (char *stringInput1, char *stringInput2, int *output) //output bernilai 0/1 0 jika beda 1 jika sama
+{
+    int it =0;
+    int bol = 1; //true
+    while (stringInput1[it]!=0x00 && stringInput2[it]!=0x00) {
+        if (stringInput1[it] == stringInput2[it]) {
+            it++;
+            bol = bol*1;
+        }
+        else {
+            bol= bol*0;
+            break;
+        }
+    }
+    if (bol==0) {
+        *output = 0;
+    }
+    else {
+        if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
+            *output = 0;
+        }
+        else {
+            *output =1;
+        }
+    }
+}
+
+void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjangKopian) {
+    int li, lo;
+    int it =0;
+
+	//hitung panjang string masukkan dan coppied output
+    lengthString(stringInput,&li);
+    lengthString(stringOutput, &lo);
+
+	//Bersihkan string output
+    clear(stringOutput, lo);
+    clear(stringOutput,li);
+    clear(stringOutput,panjangKopian);
+
+    //Validasi start
+	//Dilakukan hanya jika idxMulai lebih kecil dari panjangKopian
+    if (idxMulai >= panjangKopian) {
+        //Do nothing
+    }
+    else {
+        if (panjangKopian>0) {
+            while (panjangKopian>0 && stringInput[idxMulai]!=0x00) {
+                stringOutput[it]=stringInput[idxMulai];
+                it++; idxMulai++;
+            }
+        }
+    }
+}
+void takeFileNameFromPath (char *path, char *dirPath, char *fileName) {
+    int lp;
+    int flag =0;
+    lengthString(path,&lp);
+    while(flag==0 && lp>=0) {
+        lp--;
+        if (path[lp]=='/') {
+            flag =1;
+        }
+    }
+    //BELOM SELESAI
 }
