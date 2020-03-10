@@ -17,7 +17,10 @@ void lengthString(char *stringInput, int *length_String);
 void countChar(char *stringInput, char c, int *count_Char);
 void isStringSame (char *stringInput1, char *stringInput2, int *output); //output bernilai 0/1 0 jika beda 1 jika sama
 void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjangKopian);
-void takeFileNameFromPath (char *path, char *dirPath, char *fileName);
+void takeFileNameFromPath (char *path, char *directoryPath, char *fileName);
+void makePathtoMatriks (char *path, char c, char matriks[64][14]);
+void isSameSector(char *sector, char start, char end[14], char *index, char *output) ;
+void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char *output, char idxParent);
 
 char input[100];
 char buff[1000];
@@ -91,10 +94,8 @@ void readString(char* string)
     //Proses string selanjutnya
     //Dilakukan selama bukan enter
     while (flag==0) {      
-
         int huruf = interrupt(0x16,0,0,0,0);
-        if (huruf == '\r')
-		{
+        if (huruf == '\r') {
 			string[i] = '\0';
             flag=1;
 		}
@@ -357,7 +358,7 @@ printString("o$$$$$u?*$$$/$| |4$$$$$*)o$$$$$c"); enter();
 printString("$$$$$$$$oC#$b#| |#'F@$#)d$$$$$$$$"); enter();
 printString("*$$$$$$$$$NU#(| |)#x#u$$$$$$$$$$P"); enter();
 printString(" |***$$$$$$$NU| |UNb$$$$$$$$***|"); enter();
-printString(" -------------------------------- "); enter();
+printString(" -------------- ----------------- "); enter();
 }
 
 
@@ -438,15 +439,93 @@ void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjan
         }
     }
 }
-void takeFileNameFromPath (char *path, char *dirPath, char *fileName) {
-    int lp;
+void takeFileNameFromPath (char *path, char *directoryPath, char *fileName) {
+    int lp, lpfix;
     int flag =0;
-    lengthString(path,&lp);
+    lengthString(path,&lpfix);
+    lp = lpfix;
     while(flag==0 && lp>=0) {
         lp--;
         if (path[lp]=='/') {
             flag =1;
         }
     }
-    //BELOM SELESAI
+    copyString(path,fileName,lp+1,lpfix-lp-1); //semoga bener
+    copyString(path,directoryPath,0,lp);
+}
+
+void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
+    int it=0; int j=0;
+    
+    //Inisialisasiawal
+    //clear dengan pnjnng nama files 14 sektor
+    clear(matriks[it],14);
+    while(1) {
+        if (path[it] == 0x00) {
+            break;
+        }
+        else if (path[it]!= c) {
+            matriks[it][j] = path[it];
+            j++;
+        }
+        else {
+            matriks[it][j] = path[it];
+            it++;j=0;
+            clear(matriks[it],14);
+        }
+        it++;
+    }
+    matriks[it][j]= 0x00;
+}
+
+//MASI SALAH
+void isSameSector(char *sector, char start, char end[14], char *index, char *output) {
+   /*
+    //Inisialisasi blank space
+    char blankspace[14];
+    clear(blankspace,14);
+
+    int it = 0;
+    int bol = 0;
+    int jumlahSektor = 16;
+    while (bol==0 && it<64) {
+        if(sector[it*jumlahSektor] ==start) {
+            clear(blankspace,14);
+            for( int i=0;i<15;i++) {
+                blankspace[i] = sector[it*jumlahSektor + it+1];
+            }
+            isStringSame(blankspace,end,output);
+            bol= *output;
+        }
+        it++;
+    }
+    *output = bol;
+    */
+}
+
+
+void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char *output, char idxParent) {
+    char matriks[64][14]; //Ukuran baris kita 16, dan panjang nama file (kolom) 14
+    char fileName[14];
+    int it =0; int cslas; int bol = 1;
+    countChar(pathParent,'/',&cslas);
+
+    if (pathParent[it]==0x00) {
+        makePathtoMatriks(pathParent,'/',matriks);
+        while (bol==1 && it<=cslas) {
+            
+            //CCC (clear copy cari)
+            clear(fileName,14);
+            copyString(matriks[it], fileName, 0, 14);
+            isSameSector(dirParent, idxParent, fileName, index, output);
+            it++;
+            bol = *output;
+        }
+        *output = bol;
+    }
+    else {
+        *output = 1;
+        *index = idxParent;
+    }
+
 }
