@@ -3,10 +3,10 @@ void printString(char *string); //
 void readString(char *string); //
 void readSector(char *buffer, int sector); //
 void writeSector(char *buffer, int sector); //
-void readFile(char *buffer, char *filename, int *success);
+void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length); // Fungsi untuk mengisi buffer dengan 0 //
 void writeFile(char *buffer, char *filename, int *sectors);
-void executeProgram(char *filename, int segment, int *success);//
+void executeProgram(char *path, int segment, int *result, char parentIndex);
 int doesFileNameExist(char* buffer, char* filename);
 int mod(int bil1, int bil2); //
 int div(int bil1, int bil2); //
@@ -19,8 +19,9 @@ void isStringSame (char *stringInput1, char *stringInput2, int *output); //outpu
 void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjangKopian);
 void takeFileNameFromPath (char *path, char *directoryPath, char *fileName);
 void makePathtoMatriks (char *path, char c, char matriks[64][14]);
-void isSameSector(char *sector, char start, char end[14], char *index, char *output) ;
+void isSameSector(char *sector, char start, char checker[14], char *index, char *output) ;
 void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char *output, char idxParent);
+void searchFile(char *dirsOrFile, char *path, char *index, char *success, char parentIndex);
 
 char input[100];
 char buff[1000];
@@ -50,33 +51,37 @@ int main() {
   while (1);
 }
 
-void handleInterrupt21 (int AX, int BX, int CX, int DX){
-  switch (AX) {
-    case 0x0:
-      printString(BX);
-      break;
-    case 0x1:
-      readString(BX);
-      break;
-    case 0x2:
-      readSector(BX, CX);
-      break;
-    case 0x3:
-      writeSector(BX, CX);
-      break;
-    case 0x4:
-      readFile(BX, CX, DX);
-      break;
-    case 0x5:
-      writeFile(BX, CX, DX);
-      break;
-    case 0x6:
-      executeProgram(BX, CX, DX);
-      break;
-    default:
-      printString("Invalid interrupt");
-  }
+void handleInterrupt21 (int AX, int BX, int CX, int DX) {
+   char AL, AH;
+   AL = (char) (AX);
+   AH = (char) (AX >> 8);
+   switch (AL) {
+      case 0x00:
+         printString(BX);
+         break;
+      case 0x01:
+         readString(BX);
+         break;
+      case 0x02:
+         readSector(BX, CX);
+         break;
+      case 0x03:
+         writeSector(BX, CX);
+         break;
+      case 0x04:
+         readFile(BX, CX, DX, AH);
+         break;
+      case 0x05:
+         writeFile(BX, CX, DX, AH);
+         break;
+      case 0x06:
+         executeProgram(BX, CX, DX, AH);
+         break;
+      default:
+         printString("Invalid interrupt");
+   }
 }
+
 void printString(char *string){
     int i = 0;
     while(string[i] != '\0'){
@@ -96,7 +101,7 @@ void readString(char* string)
     while (flag==0) {      
         int huruf = interrupt(0x16,0,0,0,0);
         if (huruf == '\r') {
-			string[i] = '\0';
+			string[i] = 0x00;
             flag=1;
 		}
         else {
@@ -106,7 +111,7 @@ void readString(char* string)
                     interrupt(0x10, (0xe<<8)+0x0, 0, 0, 0); //jadiin nul
                     interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
                 if (i>=1) {
-                    string[i] = '\0';
+                    string[i] = 0x00;
                     i--;
                 }
     
@@ -129,82 +134,35 @@ void readSector(char *buffer, int sector)
 void writeSector(char *buffer, int sector) {
     interrupt(0x13, 0x301, buffer, div(sector, 36) * 0x100 + mod(sector,18) + 1, mod(div(sector,18), 2) * 0x100);
 }
-void readFile(char *buffer, char *filename, int *success) 
+void readFile(char *buffer, char *path, int *result, char parentIndex)
 {
-    char dir[512];
-    int i,j,k;
-    int flag;
-    //Baca sektor dir
-    readSector(dir, 2);
+    char dirsOrFile[1024]; //16*64
+    char sectors[512]; //16*32
+    int idx; int success; int i=0;
 
-    //Mengecek nama file
-    //looping di tiap baris dari 0 hingga 512
-	//1 baris dir punya 32 kolom, jadi dichecknya di awal-awalnya aja sehingga iterasinya +32
-    for (i=0;i<512;i+=32) {
-        flag =1;
-        //PROSES CHECK NAMA FILE
-        //Di tiap baris yang mana punya 32 kolom
-		//12 kolom pertama adalah kolom file name
-		//Kita check kolom file name dari indeks kolom 0 hingga 12
-        for (k=0; k<12;k++) {
-            if (filename[k]!='\0') {
-                //check masukkan fileName dari user
-				//Jika filename user sama dengan fileName dir, maka True
-				//cara ngechecknya dengan mengiterasi fileeName[0..12] dan
-				//mencocokannya dengan dir[0..12] tiap baris jadi dir[K..K+12]
-                if (filename[k] != dir[i+k]) {
-                    flag = -1;
-                    break;
-                }
-            }
-            else {
-                break; //iterasi berhenti, file kosong
-            }
-        }
-
-        if (flag==1) {
-            break;
-        }
-    }
-
-    if (flag!=1) {
-        *success = 0;
-        enter();
-        return;
+    interrupt(0x21,0x02,dirsOrFile,0x101,0);//write char to standar input
+	interrupt(0x21,0x02,sectors,0x103,0);
+    //PROSES PENGECHECKAN dir folder DAN file
+    searchFile(dirsOrFile,path,&idx,&success,parentIndex);
+    if (success==0) {
+        *result = -1; //File tidak ditemukan (readFile)
     }
     else {
-        //Jika sudah menemukan nama filenya di dir[0..12]
-		//Maka langkah selanjutnya adalah membaca isi filenya
-		//Isi filenya terdapat di baris yang sama dengan nama file, namun di kolom setelah nama file
-		//Jika kolom namafile [0..12]
-		//Maka kolom alamat isi dari filename [12..32] //20 kolom setelahnya
-        for(j = 0; j < 20; j++) {
-            //Baca isi dari alamatnya di sector di kolom 512 setelahnya
-            //Jika alamat isifilename di [12..32]
-            //Maka isi alamat isifilename di [12*512..32*512]
-            //readSector(A,B) adalah A berisi isi file sebenernya yang direference oleh B
-            if (dir[i+12+j]!=0) {
-                readSector(buffer+j*512, dir[i+12+j]);
+        *result = 0; //Berhasil;
+        //Proses membaca isi sector
+        while (i<16) {
+            if (sectors[(idx*16)+i]==0x00) {
+                break; //Proses membca selesai
             }
             else {
-                break;
+                //Pembacaan dilakukan ke buffer yang terletak pada buffer +(i*512)
+                //Yang dibaca adalah sector idx*16 == tabel sector
+                // yang ditambah i untuk membaca character 0..15
+                readSector(buffer+i*512,sectors[idx*16+i]);
             }
+            i++;
         }
-
-        *success = 1;
-        printString("Read File Success");
-        enter();
-        return;
-        
-		// ^ <-------------------------32 (dir)-----------------------------------> 
-		// | <---------12 (Nama file)-----><------20(Alamat isi file) ------------>
-		// |
-		// |
-		// v  (ukuran kebawah untuk dir adalah 512)
-		// ^
-		// | //Ini tempat isi file yang sebenernya (512+i) (sektor)
-		// |  
-    }
+    } 
 }
 
 void clear(char *buffer, int length) {
@@ -313,18 +271,20 @@ void writeFile(char *buffer, char *filename, int *sectors)
     enter();
 }
 
-void executeProgram(char *filename, int segment, int *success) {
-    char _buffer[10240];
+void executeProgram(char *path, int segment, int *result, char parentIndex) {
+	char _buffer[16*512];
     int i;
-
-    readFile(_buffer,filename,success);
-    if(*success == 1) {
-        for(i = 0; i < 10240; i++) {
-            putInMemory(segment, i, _buffer[i]);
-        }
-        launchProgram(segment);
-    }
+	readFile(_buffer, path, result, parentIndex);
+	if (*result == 1)
+	{
+		for (i = 0; i < 16*512; i++)
+		{
+			putInMemory(segment, i, _buffer[i]);
+		}
+		launchProgram(segment);
+	}
 }
+
 
 int mod(int bil1, int bil2){
     while(bil1 >= bil2){
@@ -358,7 +318,7 @@ printString("o$$$$$u?*$$$/$| |4$$$$$*)o$$$$$c"); enter();
 printString("$$$$$$$$oC#$b#| |#'F@$#)d$$$$$$$$"); enter();
 printString("*$$$$$$$$$NU#(| |)#x#u$$$$$$$$$$P"); enter();
 printString(" |***$$$$$$$NU| |UNb$$$$$$$$***|"); enter();
-printString(" -------------- ----------------- "); enter();
+printString(" -------------- ------------------ "); enter();
 }
 
 
@@ -478,34 +438,55 @@ void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
     matriks[it][j]= 0x00;
 }
 
-//MASI SALAH
-void isSameSector(char *sector, char start, char end[14], char *index, char *output) {
-   /*
+
+void isSameSector(char *sector, char start, char checker[14], char *index, char *output) {
+   //sector adalah tabel dir/filenya
+   //start nya adalah indexParentnya
+   //checker adalah nama directory yang ingin kita check apakah sama atau tidak
+   //Keluarannya adalah index tempat ditemukan dan output 1/0
+
+    int i; //INISIALISASI HARUS DI AWAL!1!1
+    int it = 0;
+    int bol = 0;
+    int jumlahSektor = 16;
+
     //Inisialisasi blank space
     char blankspace[14];
     clear(blankspace,14);
 
-    int it = 0;
-    int bol = 0;
-    int jumlahSektor = 16;
-    while (bol==0 && it<64) {
+
+    //Melakukan iterasi di sepnjang tabelfile/dir kita
+    //Tabel dir memiliki index dari  0 hingga 63
+    while (it<=63) {
+        //Check apakah P nya atau it*16 di table dir sama dengan nilai indexParent
         if(sector[it*jumlahSektor] ==start) {
+
+            //Jika nilai index sama, maka sekarang kita check
+            //Apakah "namaFolder" nya sama atau tidak
             clear(blankspace,14);
-            for( int i=0;i<15;i++) {
-                blankspace[i] = sector[it*jumlahSektor + it+1];
+
+            //Kita isi blankspace dengan namaFolder yg diambil dari sector / tabel dir
+            for(i=0;i<14;i++) {
+                blankspace[i] = sector[it*jumlahSektor + (i+2)];
             }
-            isStringSame(blankspace,end,output);
-            bol= *output;
+            isStringSame(blankspace,checker,output);
+            break;
         }
         it++;
     }
     *output = bol;
-    */
+    *index = it-1;
 }
 
 
 void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char *output, char idxParent) {
+    //Akan melakukan seaching pada directory Parentnya
+    //Apakah directory parentnya valid atau tidak
+    //Jika valid outputnya 1, jika tidak, outputnya 0
+
+    //matriks akan berisi matriks dari path parent yang sudah dipisah pisah
     char matriks[64][14]; //Ukuran baris kita 16, dan panjang nama file (kolom) 14
+    //FileName adalah matriks yang diakses setiap baris
     char fileName[14];
     int it =0; int cslas; int bol = 1;
     countChar(pathParent,'/',&cslas);
@@ -527,5 +508,22 @@ void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char 
         *output = 1;
         *index = idxParent;
     }
+}
 
+void searchFile(char *dirsOrFile, char *path, char *index, char *success, char parentIndex) {
+    char pathParent[960]; //64 baris * 14+1 kolom, +1 kolom buat 0x00?,  path Parent without file
+    char file[14];
+    int idx;
+
+    takeFileNameFromPath(path,pathParent,file);
+
+    //Check apakah Parent atau foldernya valid atau tidak
+    searchDirectoryParent(dirsOrFile,pathParent,&idx,success,parentIndex);
+    if (*success==0) {
+        //Do nothing 
+    }
+    else {
+        //Check apakah filenya valid atau tidak
+        isSameSector(dirsOrFile,idx,file,index,success);    
+        }
 }
