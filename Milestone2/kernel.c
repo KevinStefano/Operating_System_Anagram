@@ -387,14 +387,14 @@ void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjan
 
     //Validasi start
 	//Dilakukan hanya jika idxMulai lebih kecil dari panjangKopian
-    if (idxMulai >= panjangKopian) {
+    if (idxMulai >= li) {
         //Do nothing
     }
     else {
         if (panjangKopian>0) {
             while (panjangKopian>0 && stringInput[idxMulai]!=0x00) {
                 stringOutput[it]=stringInput[idxMulai];
-                it++; idxMulai++;
+                it++; idxMulai++; panjangKopian--;
             }
         }
     }
@@ -474,7 +474,6 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
         }
         it++;
     }
-    *output = bol;
     *index = it-1;
 }
 
