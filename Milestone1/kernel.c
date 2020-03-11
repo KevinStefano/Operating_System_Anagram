@@ -30,14 +30,25 @@ int main() {
     printString("executee");
     enter();
     enter();
-    interrupt(0x21, 0x4, buffer, "key.txt", &succ);
-    if (succ) {
-        interrupt(0x21,0x0, "Kunci : ", 0, 0);
-	 	interrupt(0x21,0x0, buffer, 0, 0);
+    // interrupt(0x21, 0x4, buffer, "key.txt", &succ);
+    // if (succ) {
+    //     interrupt(0x21,0x0, "Kunci : ", 0, 0);
+	//  	interrupt(0x21,0x0, buffer, 0, 0);
+    // }
+    // else {
+    //     interrupt(0x21, 0x6, "milestone1", 0x2000, &succ);
+    // }
+    readFile(buffer,"key.txt",&succ);
+    if(succ) {
+        printString("Kunci: \n\r");
+        printString(buffer);
+        enter();
     }
     else {
-        interrupt(0x21, 0x6, "milestone1", 0x2000, &succ);
+        printString("Executing.....\n\r");
+        executeProgram("milestone1",0x2000,&succ);
     }
+    printString("All done!\n\r");
   while (1);
 }
 

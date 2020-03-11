@@ -5,7 +5,7 @@ void readSector(char *buffer, int sector); //
 void writeSector(char *buffer, int sector); //
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length); // Fungsi untuk mengisi buffer dengan 0 //
-void writeFile(char *buffer, char *filename, int *sectors);
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void executeProgram(char *path, int segment, int *result, char parentIndex);
 int doesFileNameExist(char* buffer, char* filename);
 int mod(int bil1, int bil2); //
@@ -37,7 +37,7 @@ int main() {
     logo();
     enter();
     enter();
-    printString("executee");
+    printString("execute");
     enter();
     enter();
     interrupt(0x21, 0x4, buffer, "key.txt", &succ);
@@ -140,8 +140,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
     char sectors[512]; //16*32
     int idx; int success; int i=0;
 
-    interrupt(0x21,0x02,dirsOrFile,0x101,0);//write char to standar input
-	interrupt(0x21,0x02,sectors,0x103,0);
+    // read sector
+    readSector(dirsOrFile,0x101);
+    readSector(sectors,0x103);
     //PROSES PENGECHECKAN dir folder DAN file
     searchFile(dirsOrFile,path,&idx,&success,parentIndex);
     if (success==0) {
@@ -171,104 +172,102 @@ void clear(char *buffer, int length) {
         buffer[i] = 0x0;
     } 
 }
-void writeFile(char *buffer, char *filename, int *sectors) 
-{
-    char map[512];
-    char dir[512];
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
+    char file1[1024], map[512], sector_[512];
+    char filename[14];
+    char directory_path[512];
     char sub_buffer[512];
-    int dir_index, sector_idx=0, sector_num;
-    int i,j,k,l;
+    char idx_parent, dir_valid, idx_file, file_exist, idx_sector;
+    int i, j, k, l, m, count_emptymap = 0, buffer_length = 0, filename_length = 0, count_neededsector, file_index;
+    int available_entries;
 
-    //Baca sector map dan dir
-    readSector(map,1);
-    readSector(dir,2);
+    readSector(map,0x100);
+    readSector(file1,0x101);
+    readSector(file1+512,0x102);
+    readSector(sector_,0x103);
 
-    //PROSES CHECK DIR KOSONG
-	//16 BARIS awal di dir berisi nama-nama file yang kita miliki
-	//Kita check apakah di 16 baris awal itu ada tempat yang kosong
-	//Maka kita melooping dai baris 0 sampai 16, dari kolom 0 sampai 32
-    for(dir_index = 0; dir_index < 16; dir_index++) {
-		//Jika ada yang 0 maka ada yang kosong yuhu~~~
-		//checknya tiap baris*32
-        if(dir[dir_index*32] == 0x00) {
-            break;
+    //Cek jumlah map kosong
+    for(i = 0; i < 512; i++) {
+        if(map[i] == 0x00) {
+            count_emptymap++;
         }
     }
 
-	//Jika TIDAK ada yang kosong di baris 0..16, maka kita tidak bisa menulis file
-    if(dir_index>=16) {
-        printString("Not able to find an empty directory for the current file.");
-        *sectors = -1;
-        return;
-
-	//Jika ada yang kosong di baris 0..16, maka kita bisa menulis file
+    lengthString(buffer, &buffer_length);
+    count_neededsector = div(buffer_length,512);
+    if(count_neededsector <= 0) {
+        count_neededsector = 1;
     }
-    else {
-         //Cek jumlah sektor di map cukup untuk buffer file
-         //Kita mengecheck sekarang apakah map yang kita miliki kosong
-		//Chek dilakukan apakah i<256 dan map yang ksong sejumlah sectornya
-        for(k = 0, sector_num = 0; k < 512 && sector_num<(*sectors); k++) {
-            if(map[k] == 0x00) {
-                sector_num++;
+
+    if(count_emptymap >= count_neededsector) {
+        available_entries = 0;
+        //Cek dari sector file
+        for(j = 0; j < 1024; j += 16) {
+            if(file1[j+2] == 0x00) {
+                available_entries = 1;
+                file_index = div(j,16);
+                break;
             }
         }
-        if(sector_num < *sectors) {
-            printString("Not enough directory space for the current file.");
-            *sectors = 0;
-            return;
-        }
-        else {
-            //Bersihkan sektor yang akan digunakan
-            //Jika map yang kosong sejumlah sector yang kita mau, maka kita clear
-            clear(dir+dir_index*32,32);
+        if(available_entries) {
+            takeFileNameFromPath(path,directory_path,filename);
+            searchDirectoryParent(file1,directory_path,&idx_parent,&dir_valid,parentIndex);
+            if(dir_valid) {
+                searchFile(file1,path,&idx_file,&file_exist,parentIndex);
+                if(!file_exist) {
+                    //isi P dengan index dirParent
+                    file1[file_index*16] = idx_parent;
+                    lengthString(filename,&filename_length);
+                    //Cari index sector
+                    for(idx_sector = 0; idx_sector < 32; idx_sector++) {
+                        if(sector_[idx_sector*16] == 0x00) {
+                            break;
+                        }
+                    }
+                    file1[file_index*16+1] = idx_sector;
+                    //Isi nama file di files
+                    for(k = 0; k < filename_length; k++) {
+                        file1[file_index*16+2+k] = filename[k];
+                    }
+                    //Cari sector kosong
+                    for(l = 0; l < count_neededsector; l++) {
+                        while(map[m] != 0x00 && m < 256) {
+                            m++;
+                        }
+                        //Tandai di map
+                        map[m] == 0xFF;
+                        //Isi di [1]
+                        sector_[idx_sector*16+l] = m;
+                        //Pindahkan ke sub_buffer sebesar 512
+                        clear(sub_buffer,512);
+                        copyString(buffer, sub_buffer, l*512, 512);
+                        //Menuliskan ke sector m
+                        writeSector(sub_buffer, m);
+                    }
 
-            //PROSES MENULIS NAMA FILE DI DIR
-			//Tulis namafile
-			//Tulis di dir dengan index idx*32
-			//Kemudian looping dari kolom ke 0 sampai kolom ke 12
-			for(i = 0; i < 12; i++) {
-                if (filename[i] != 0x00) {
-                    dir[dir_index*32 + i] = filename[i];
+                    writeSector(map,0x100);
+                    writeSector(file1,0x101);
+                    writeSector(file1+512,0x102);
+                    writeSector(sector_,0x103);
+                    *sectors = 1;
                 }
                 else {
-                    break;
+                    *sectors = -1; // File sudah ada
                 }
             }
-
-            //Sekarang kita mencari lagi di map yang kosong tadi
-            for(j = 0, sector_num =0; j < 512 && sector_num < (*sectors); j++) {
-                if (map[j] == 0x00) {
-                    //Menandai di map
-                    map[j] = 0xFF;
-
-                    //Tandai di dir
-                    //dir_Index*32 berisi nama file kita
-					//+12  berisi isi dari file kita
-					//+sector_num berarrti terdapat di kolom setelah isi dari filename kita
-					//karena isi dari filename kita berukuran sector_num
-					//Kita isi dengan sembarang yaitu i
-                    dir[dir_index*32+12+sector_num ] = j;
-
-                    //PROSES MENULIS DI ISI FILE DI SECTOR (512 sertelah dir)
-					//Bersihkan sector yang akan kita pakai sejumlah 512 baris
-                    clear(sub_buffer,512);
-
-					//Kita tulis dari baris 0..512
-                    for(l = 0; l < 512; l++) {
-
-                        //Memindahkan dari buffer ke kita punya sektor
-                        sub_buffer[l] = buffer[sector_num *512+l];
-                    }
-                    writeSector(sub_buffer,j);
-                    sector_num++;
-                }
+            else {
+                *sectors = -4; // Folder tidak valid
             }
-        }     
+            
+        }
+        else {
+            *sectors = -2; // Tidak cukup entri di files
+        }
     }
-    writeSector(map,1);
-    writeSector(dir,2);
-    printString("File accepted");
-    enter();
+    else {
+        *sectors = -3; // Tidak cukup sektor kosong
+    }
+
 }
 
 void executeProgram(char *path, int segment, int *result, char parentIndex) {
@@ -338,7 +337,7 @@ void countChar(char *stringInput, char c, int *count_Char) {
             it++;
         }
         else {
-            jumlah ++;
+            jumlah++;
             it++;
         }
     }
@@ -385,17 +384,12 @@ void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjan
     clear(stringOutput,li);
     clear(stringOutput,panjangKopian);
 
-    //Validasi start
-	//Dilakukan hanya jika idxMulai lebih kecil dari panjangKopian
-    if (idxMulai >= li) {
-        //Do nothing
-    }
-    else {
-        if (panjangKopian>0) {
-            while (panjangKopian>0 && stringInput[idxMulai]!=0x00) {
-                stringOutput[it]=stringInput[idxMulai];
-                it++; idxMulai++; panjangKopian--;
-            }
+    if(idxMulai < li) {
+        while (panjangKopian>0 && stringInput[idxMulai]!=0x00) {
+            stringOutput[it]=stringInput[idxMulai];
+            it++; 
+            idxMulai++;
+            panjangKopian--;
         }
     }
 }
@@ -524,5 +518,5 @@ void searchFile(char *dirsOrFile, char *path, char *index, char *success, char p
     else {
         //Check apakah filenya valid atau tidak
         isSameSector(dirsOrFile,idx,file,index,success);    
-        }
+    }
 }
