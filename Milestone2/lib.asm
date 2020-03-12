@@ -17,7 +17,7 @@ _interrupt:
 	mov si,intr
 	mov [si+1],al	;change the 00 below to the contents of AL
 	pop ds
-	mov ax,[bp+6]	;get the other parameters AX, BX, CX, and DX
+	mov ax,[bp+6]	;get the other parameters AX, BX,s CX, and DX
 	mov bx,[bp+8]
 	mov cx,[bp+10]
 	mov dx,[bp+12]
