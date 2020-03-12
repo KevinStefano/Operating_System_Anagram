@@ -5,6 +5,13 @@
 // This should be compiled with gcc and run outside of the OS
 
 #include <stdio.h>
+int div(int bil1, int bil2){
+    int z = 0;
+    while(bil2 * z<=bil1){
+        z++;
+    }
+    return z-1;
+}
 
 void main(int argc, char* argv[]) {
   int i;
@@ -47,7 +54,7 @@ void main(int argc, char* argv[]) {
 
   // find a free entry in the directory
   for (i = 0; i < 1024; i += 16)
-    if (files[i] == 0) break;
+    if (files[i] == 0 && files[i+1] == 0 && files[i+2] == 0) break;
   if (i == 1024) {
     printf("Not enough room in directory\n");
     return;
@@ -65,7 +72,7 @@ void main(int argc, char* argv[]) {
   }
   int sectoridx = i;
   // fill the sector entry
-  files[dirindex + 1] = sectoridx;
+  files[dirindex + 1] = div(sectoridx,16);
   // fill the name field with 00s first
   for (i = 0; i < 14; i++) files[dirindex + 2 + i] = 0x00;
   // copy the name over

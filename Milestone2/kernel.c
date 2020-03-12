@@ -30,7 +30,7 @@ char pengguna[1000];
 char c[5] =  {'a','b','c','d'};
 int succ = 0;
 int sec = 10;
-char buffer[10240];
+char buffer[8192];
 
 int main() {
     makeInterrupt21();
@@ -40,14 +40,28 @@ int main() {
     printString("execute");
     enter();
     enter();
-    interrupt(0x21, 0x4, buffer, "key.txt", &succ);
-    if (succ) {
-        interrupt(0x21,0x0, "Kunci : ", 0, 0);
-	 	interrupt(0x21,0x0, buffer, 0, 0);
+    // interrupt(0x21, 0x4, buffer, "key.txt", &succ);
+    // if (succ) {
+    //     interrupt(0x21,0x0, "Kunci : ", 0, 0);
+	//  	interrupt(0x21,0x0, buffer, 0, 0);
+    // }
+    // else {
+    //     interrupt(0x21, 0x6, "milestone1", 0x2000, &succ);
+    // }
+    printString("Writing file\n\r");
+    writeFile(c,"c.txt",&succ,0xFF);
+    if(succ == 1) printString("Write File success\n\r");
+    else if(succ == -1) printString("File sudah ada\n\r");
+    else if(succ == -2) printString("Tidak cukup entri di files\n\r");
+    else if(succ == -3) printString("Tidak cukup sektor kosong\n\r");
+    else if(succ == -4) printString("Folder tidak valid\n\r");
+    printString("Reading file\n\r");
+    readFile(buffer,"c.txt",&succ,0xFF);
+    if(succ == 0) {
+        printString(buffer);
+        enter();
     }
-    else {
-        interrupt(0x21, 0x6, "milestone1", 0x2000, &succ);
-    }
+    else if(succ == -1) printString("Read File failed\n\r");
   while (1);
 }
 
@@ -142,6 +156,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
 
     // read sector
     readSector(dirsOrFile,0x101);
+    readSector(dirsOrFile+512,0x102);
     readSector(sectors,0x103);
     //PROSES PENGECHECKAN dir folder DAN file
     searchFile(dirsOrFile,path,&idx,&success,parentIndex);
@@ -178,7 +193,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     char directory_path[512];
     char sub_buffer[512];
     char idx_parent, dir_valid, idx_file, file_exist, idx_sector;
-    int i, j, k, l, m, count_emptymap = 0, buffer_length = 0, filename_length = 0, count_neededsector, file_index;
+    int i, j, k, l, m = 0, count_emptymap = 0, buffer_length = 0, filename_length = 0, count_neededsector, file_index;
     int available_entries;
 
     readSector(map,0x100);
@@ -203,7 +218,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
         available_entries = 0;
         //Cek dari sector file
         for(j = 0; j < 1024; j += 16) {
-            if(file1[j+2] == 0x00) {
+            if(file1[j] == 0x00 && file1[j+1] == 0x00 && file1[j+2] == 0x00) {
                 available_entries = 1;
                 file_index = div(j,16);
                 break;
@@ -225,7 +240,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
                         }
                     }
                     file1[file_index*16+1] = idx_sector;
-                    //Isi nama file di files
+                    //Isi nama file di files dengan 00 dulu
+                    for(k = 0; k < 14; k++) {
+                        file1[file_index*16+2+k] = 0x00;
+                    }
                     for(k = 0; k < filename_length; k++) {
                         file1[file_index*16+2+k] = filename[k];
                     }
@@ -236,7 +254,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
                         }
                         //Tandai di map
                         map[m] == 0xFF;
-                        //Isi di [1]
+                        //Isi di sector
                         sector_[idx_sector*16+l] = m;
                         //Pindahkan ke sub_buffer sebesar 512
                         clear(sub_buffer,512);
@@ -468,8 +486,9 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
         }
         it++;
     }
-    *output = bol;
-    *index = it-1;
+    if(*output) {
+        *index = it;
+    }
 }
 
 
@@ -479,13 +498,13 @@ void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char 
     //Jika valid outputnya 1, jika tidak, outputnya 0
 
     //matriks akan berisi matriks dari path parent yang sudah dipisah pisah
-    char matriks[64][14]; //Ukuran baris kita 16, dan panjang nama file (kolom) 14
+    char matriks[64][14]; //Ukuran baris kita 64, dan panjang nama file (kolom) 14
     //FileName adalah matriks yang diakses setiap baris
     char fileName[14];
     int it =0; int cslas; int bol = 1;
     countChar(pathParent,'/',&cslas);
 
-    if (pathParent[it]==0x00) {
+    if (pathParent[it]!=0x00) {
         makePathtoMatriks(pathParent,'/',matriks);
         while (bol==1 && it<=cslas) {
             
