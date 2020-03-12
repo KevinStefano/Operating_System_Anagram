@@ -9,11 +9,9 @@ dd if=sectors.img of=system.img bs=512 count=1 seek=259 conv=notrunc
 bcc -ansi -c -o kernel.o kernel.c
 nasm -f as86 kernel.asm -o kernel_asm.o
 ld86 -o kernel -d kernel.o kernel_asm.o
-dd if=kernel of=system.img bs=512 conv=notrunc seek=3
-
-echo load shell
-as86 lib.asm -o lib_asm.o
+dd if=kernel of=system.img bs=512 conv=notrunc seek=1
+./loadFile milestone1
+nasm -f as86 lib.asm -o lib_asm.o
 bcc -ansi -c -o shell.o shell.c
 ld86 -o shell -d shell.o lib_asm.o
-./loadFile shell
 echo c | bochs -f if2230.config

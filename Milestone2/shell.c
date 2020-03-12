@@ -91,7 +91,7 @@ int main() {
                             curdir = curdirtemporal;
                             clear(fileName,14);
                             interrupt(0x21, 0x00, "Go to ",0,0);
-                            searchFileNamebyIndex(curdir,fileName);
+                            searchFileNameParentbyIndexFromChild(dirsOrFile,&curdir,fileName);
                             interrupt(0x21, 0x00,fileName,0,0);
                             enter();
                         }
