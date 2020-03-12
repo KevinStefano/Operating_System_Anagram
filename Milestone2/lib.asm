@@ -28,9 +28,9 @@ intr:	int 0x00	;call the interrupt (00 will be changed above)
 	pop bp
 	ret
 
-_arrow:
-	mov ah,0
-	int 0x16
-	cmp ah,0x48
-
-	ret
+;_arrow:
+;	push bp
+;	mov ah,0
+;	int 0x16
+;	pop bp
+;	ret
