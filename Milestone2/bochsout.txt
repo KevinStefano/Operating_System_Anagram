@@ -32,37 +32,37 @@
 00000000000i[     ]   SB16 support: yes
 00000000000i[     ]   USB support: yes
 00000000000i[     ]   VGA extension support: vbe cirrus
-00000000000i[MEM0 ] allocated memory at 0x7fb268bf0010. after alignment, vector=0x7fb268bf1000
+00000000000i[MEM0 ] allocated memory at 0x7fbfc8760010. after alignment, vector=0x7fbfc8761000
 00000000000i[MEM0 ] 32,00MB
 00000000000i[MEM0 ] mem block size = 0x00100000, blocks=32
 00000000000i[MEM0 ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
-00000000000i[     ] lt_dlhandle is 0x56032a576850
+00000000000i[     ] lt_dlhandle is 0x5572de8a2850
 00000000000i[PLGIN] loaded plugin libbx_hdimage.so
-00000000000i[     ] lt_dlhandle is 0x56032a73b3f0
+00000000000i[     ] lt_dlhandle is 0x5572dea673f0
 00000000000i[PLGIN] loaded plugin libbx_pci.so
-00000000000i[     ] lt_dlhandle is 0x56032a73bf80
+00000000000i[     ] lt_dlhandle is 0x5572dea67f80
 00000000000i[PLGIN] loaded plugin libbx_pci2isa.so
-00000000000i[     ] lt_dlhandle is 0x56032a73c990
+00000000000i[     ] lt_dlhandle is 0x5572dea68990
 00000000000i[PLGIN] loaded plugin libbx_acpi.so
-00000000000i[     ] lt_dlhandle is 0x56032a73d3a0
+00000000000i[     ] lt_dlhandle is 0x5572dea693a0
 00000000000i[PLGIN] loaded plugin libbx_cmos.so
-00000000000i[     ] lt_dlhandle is 0x56032a73dce0
+00000000000i[     ] lt_dlhandle is 0x5572dea69ce0
 00000000000i[PLGIN] loaded plugin libbx_dma.so
-00000000000i[     ] lt_dlhandle is 0x56032a73e780
+00000000000i[     ] lt_dlhandle is 0x5572dea6a780
 00000000000i[PLGIN] loaded plugin libbx_pic.so
-00000000000i[     ] lt_dlhandle is 0x56032a73f030
+00000000000i[     ] lt_dlhandle is 0x5572dea6b030
 00000000000i[PLGIN] loaded plugin libbx_pit.so
-00000000000i[     ] lt_dlhandle is 0x56032a73fa70
+00000000000i[     ] lt_dlhandle is 0x5572dea6ba70
 00000000000i[PLGIN] loaded plugin libbx_floppy.so
-00000000000i[     ] lt_dlhandle is 0x56032a740670
+00000000000i[     ] lt_dlhandle is 0x5572dea6c670
 00000000000i[PLGIN] loaded plugin libbx_vga.so
-00000000000i[     ] lt_dlhandle is 0x56032a740ee0
+00000000000i[     ] lt_dlhandle is 0x5572dea6cee0
 00000000000i[PLGIN] loaded plugin libbx_ioapic.so
-00000000000i[     ] lt_dlhandle is 0x56032a741730
+00000000000i[     ] lt_dlhandle is 0x5572dea6d730
 00000000000i[PLGIN] loaded plugin libbx_keyboard.so
-00000000000i[     ] lt_dlhandle is 0x56032a7420c0
+00000000000i[     ] lt_dlhandle is 0x5572dea6e0c0
 00000000000i[PLGIN] loaded plugin libbx_harddrv.so
-00000000000i[     ] lt_dlhandle is 0x56032a7541f0
+00000000000i[     ] lt_dlhandle is 0x5572dea801f0
 00000000000i[PLGIN] loaded plugin libbx_pci_ide.so
 00000000000i[PLGIN] init_dev of 'pci' plugin device by virtual method
 00000000000i[PCI  ] 440FX Host bridge present at device 0, function 0
@@ -70,7 +70,7 @@
 00000000000i[PCI  ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS ] Using local time for initial clock
-00000000000i[CMOS ] Setting initial clock to: Thu Mar 12 15:00:16 2020 (time0=1584000016)
+00000000000i[CMOS ] Setting initial clock to: Thu Mar 12 17:29:34 2020 (time0=1584008974)
 00000000000i[PLGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA  ] channel 4 used by cascade
 00000000000i[PLGIN] init_dev of 'pic' plugin device by virtual method
@@ -213,25 +213,25 @@
 00001594711i[BXVGA] VBE known Display Interface b0c5
 00001597636i[VBIOS] VBE Bios $Id: vbe.c,v 1.64 2011/07/19 18:25:05 vruppert Exp $
 00003333332i[XGUI ] charmap update. Font Height is 16
-00032315172i[BIOS ] Booting from 0000:7c00
-00491820000p[XGUI ] >>PANIC<< POWER button turned off.
-00491820000i[CPU0 ] CPU is in real mode (active)
-00491820000i[CPU0 ] CS.mode = 16 bit
-00491820000i[CPU0 ] SS.mode = 16 bit
-00491820000i[CPU0 ] EFER   = 0x00000000
-00491820000i[CPU0 ] | EAX=00001100  EBX=00001184  ECX=00090000  EDX=00000000
-00491820000i[CPU0 ] | ESP=0000ffea  EBP=0000ffee  ESI=000e0084  EDI=0000ffac
-00491820000i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf af pf cf
-00491820000i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
-00491820000i[CPU0 ] |  CS:1000( 0004| 0|  0) 00010000 0000ffff 0 0
-00491820000i[CPU0 ] |  DS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
-00491820000i[CPU0 ] |  SS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
-00491820000i[CPU0 ] |  ES:1000( 0005| 0|  0) 00010000 0000ffff 0 0
-00491820000i[CPU0 ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-00491820000i[CPU0 ] |  GS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-00491820000i[CPU0 ] | EIP=000000e1 (000000e1)
-00491820000i[CPU0 ] | CR0=0x60000010 CR2=0x00000000
-00491820000i[CPU0 ] | CR3=0x00000000 CR4=0x00000000
-00491820000i[CMOS ] Last time is 1584000065 (Thu Mar 12 15:01:05 2020)
-00491820000i[XGUI ] Exit
-00491820000i[CTRL ] quit_sim called with exit code 1
+00032315164i[BIOS ] Booting from 0000:7c00
+00501080000p[XGUI ] >>PANIC<< POWER button turned off.
+00501080000i[CPU0 ] CPU is in real mode (active)
+00501080000i[CPU0 ] CS.mode = 16 bit
+00501080000i[CPU0 ] SS.mode = 16 bit
+00501080000i[CPU0 ] EFER   = 0x00000000
+00501080000i[CPU0 ] | EAX=00001100  EBX=00001188  ECX=00090000  EDX=00000000
+00501080000i[CPU0 ] | ESP=0000ffea  EBP=0000ffee  ESI=000e0084  EDI=0000ffac
+00501080000i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf af pf cf
+00501080000i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
+00501080000i[CPU0 ] |  CS:1000( 0004| 0|  0) 00010000 0000ffff 0 0
+00501080000i[CPU0 ] |  DS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
+00501080000i[CPU0 ] |  SS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
+00501080000i[CPU0 ] |  ES:1000( 0005| 0|  0) 00010000 0000ffff 0 0
+00501080000i[CPU0 ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00501080000i[CPU0 ] |  GS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00501080000i[CPU0 ] | EIP=000000e1 (000000e1)
+00501080000i[CPU0 ] | CR0=0x60000010 CR2=0x00000000
+00501080000i[CPU0 ] | CR3=0x00000000 CR4=0x00000000
+00501080000i[CMOS ] Last time is 1584009024 (Thu Mar 12 17:30:24 2020)
+00501080000i[XGUI ] Exit
+00501080000i[CTRL ] quit_sim called with exit code 1

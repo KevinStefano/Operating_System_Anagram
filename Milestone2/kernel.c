@@ -27,7 +27,7 @@ char input[100];
 char buff[1000];
 char buffs[10000];
 char pengguna[1000];
-char c[5] =  {'a','b','c','d'};
+char c[10] =  {'a','b','c','d','e','f','g','h','i','j'};
 int succ = 0;
 int sec = 10;
 char buffer[8192];
@@ -62,6 +62,15 @@ int main() {
         enter();
     }
     else if(succ == -1) printString("Read File failed\n\r");
+    // readFile(buffer,"milestone1",&succ,0xFF);
+    // if(succ == 0) {
+    //     printString("Read File berhasil\n\r");
+    //     printString(buffer);
+    //     enter();
+    // }
+    // else {
+    //     printString("Read File gagal!\n\r");
+    // }
   while (1);
 }
 
@@ -487,7 +496,7 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
         it++;
     }
     if(*output) {
-        *index = it;
+        *index = it-1;
     }
 }
 
