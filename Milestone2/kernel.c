@@ -48,20 +48,20 @@ int main() {
     // else {
     //     interrupt(0x21, 0x6, "milestone1", 0x2000, &succ);
     // }
-    printString("Writing file\n\r");
-    writeFile(c,"c.txt",&succ,0xFF);
-    if(succ == 1) printString("Write File success\n\r");
-    else if(succ == -1) printString("File sudah ada\n\r");
-    else if(succ == -2) printString("Tidak cukup entri di files\n\r");
-    else if(succ == -3) printString("Tidak cukup sektor kosong\n\r");
-    else if(succ == -4) printString("Folder tidak valid\n\r");
-    printString("Reading file\n\r");
-    readFile(buffer,"c.txt",&succ,0xFF);
-    if(succ == 0) {
-        printString(buffer);
-        enter();
-    }
-    else if(succ == -1) printString("Read File failed\n\r");
+    // printString("Writing file\n\r");
+    // writeFile(c,"c.txt",&succ,0xFF);
+    // if(succ == 1) printString("Write File success\n\r");
+    // else if(succ == -1) printString("File sudah ada\n\r");
+    // else if(succ == -2) printString("Tidak cukup entri di files\n\r");
+    // else if(succ == -3) printString("Tidak cukup sektor kosong\n\r");
+    // else if(succ == -4) printString("Folder tidak valid\n\r");
+    // printString("Reading file\n\r");
+    // readFile(buffer,"c.txt",&succ,0xFF);
+    // if(succ == 0) {
+    //     printString(buffer);
+    //     enter();
+    // }
+    // else if(succ == -1) printString("Read File failed\n\r");
     // readFile(buffer,"milestone1",&succ,0xFF);
     // if(succ == 0) {
     //     printString("Read File berhasil\n\r");
@@ -71,6 +71,7 @@ int main() {
     // else {
     //     printString("Read File gagal!\n\r");
     // }
+	interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
   while (1);
 }
 
