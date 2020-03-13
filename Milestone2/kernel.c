@@ -292,6 +292,7 @@ int div(int bil1, int bil2){
         z++;
     }
     return z-1;
+
 }
 
 void enter() {
