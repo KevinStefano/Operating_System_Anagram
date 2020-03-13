@@ -10,7 +10,6 @@ void executeProgram(char *path, int segment, int *result, char parentIndex);
 int doesFileNameExist(char* buffer, char* filename);
 int mod(int bil1, int bil2); //
 int div(int bil1, int bil2); //
-void logo();//
 void enter();
 
 void lengthString(char *stringInput, int *length_String);
@@ -23,7 +22,7 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
 void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char *output, char idxParent);
 void searchFile(char *dirsOrFile, char *path, char *index, char *success, char parentIndex);
 
-char input[100];
+char input[5];
 char buff[1000];
 char buffs[10000];
 char pengguna[1000];
@@ -34,45 +33,18 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    logo();
-    enter();
-    enter();
-    printString("execute");
-    enter();
-    enter();
-    // interrupt(0x21, 0x4, buffer, "key.txt", &succ);
-    // if (succ) {
-    //     interrupt(0x21,0x0, "Kunci : ", 0, 0);
-	//  	interrupt(0x21,0x0, buffer, 0, 0);
-    // }
-    // else {
-    //     interrupt(0x21, 0x6, "milestone1", 0x2000, &succ);
-    // }
-    // printString("Writing file\n\r");
-    // writeFile(c,"c.txt",&succ,0xFF);
-    // if(succ == 1) printString("Write File success\n\r");
-    // else if(succ == -1) printString("File sudah ada\n\r");
-    // else if(succ == -2) printString("Tidak cukup entri di files\n\r");
-    // else if(succ == -3) printString("Tidak cukup sektor kosong\n\r");
-    // else if(succ == -4) printString("Folder tidak valid\n\r");
-    // printString("Reading file\n\r");
-    // readFile(buffer,"c.txt",&succ,0xFF);
-    // if(succ == 0) {
-    //     printString(buffer);
-    //     enter();
-    // }
-    // else if(succ == -1) printString("Read File failed\n\r");
-    // readFile(buffer,"milestone1",&succ,0xFF);
-    // if(succ == 0) {
-    //     printString("Read File berhasil\n\r");
-    //     printString(buffer);
-    //     enter();
-    // }
-    // else {
-    //     printString("Read File gagal!\n\r");
-    // }
-	interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
-  while (1);
+    interrupt(0x21,0x00,"Masukkan pilihan\n\r",0,0);
+    interrupt(0x21,0x00,"1.Shell\n\r",0,0);
+    interrupt(0x21,0x01,input,0,0);
+    if(input[0] == 0x31) {
+        interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
+    } else {
+        interrupt(0x21,0x00, "Masukan tidak valid\n\r", 0, 0);
+    }
+    
+  while (1){
+
+  }
 }
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
@@ -163,11 +135,11 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
     char dirsOrFile[1024]; //16*64
     char sectors[512]; //16*32
     int idx; int success; int i=0;
-
     // read sector
     readSector(dirsOrFile,0x101);
     readSector(dirsOrFile+512,0x102);
     readSector(sectors,0x103);
+
     //PROSES PENGECHECKAN dir folder DAN file
     searchFile(dirsOrFile,path,&idx,&success,parentIndex);
     if (success==0) {
@@ -302,7 +274,7 @@ void executeProgram(char *path, int segment, int *result, char parentIndex) {
 	char _buffer[16*512];
     int i;
 	readFile(_buffer, path, result, parentIndex);
-	if (*result == 1)
+	if (*result == 0)
 	{
 		for (i = 0; i < 16*512; i++)
 		{
@@ -331,21 +303,6 @@ int div(int bil1, int bil2){
 void enter() {
     interrupt(0x10, 0xe*256+'\r',0,0,0);
     interrupt(0x10, 0xe*256+'\n',0,0,0);
-}
-void logo() {
-printString("          .dWeL  udWbL "); enter();
-printString("         :$$$$$.x$$$$$:"); enter();
-printString("     ... 9$$$$$E|$$$$$E  .."); enter();
-printString("    d$$$e`$$$$$F9$$$$$|o$$$N."); enter();
-printString("   d$$$$$kR$$$---$$$$$z$$$$$&"); enter();
-printString("   $$$$$$$/$$<| |'$$$$&$$$$$$R"); enter();
-printString("   ^*$$$$$$|$$| |$$$F$$$$$$*"); enter();
-printString(" .uu.|R$$$$c$$| |$$$x$$$$P|.uu."); enter();
-printString("o$$$$$u?*$$$/$| |4$$$$$*)o$$$$$c"); enter();
-printString("$$$$$$$$oC#$b#| |#'F@$#)d$$$$$$$$"); enter();
-printString("*$$$$$$$$$NU#(| |)#x#u$$$$$$$$$$P"); enter();
-printString(" |***$$$$$$$NU| |UNb$$$$$$$$***|"); enter();
-printString(" -------------- ------------------ "); enter();
 }
 
 
@@ -437,7 +394,7 @@ void takeFileNameFromPath (char *path, char *directoryPath, char *fileName) {
 }
 
 void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
-    int it=0; int j=0;
+    int it=0; int j=0; int l=0;
     
     //Inisialisasiawal
     //clear dengan pnjnng nama files 14 sektor
@@ -447,17 +404,17 @@ void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
             break;
         }
         else if (path[it]!= c) {
-            matriks[it][j] = path[it];
+            matriks[l][j] = path[it];
             j++;
         }
         else {
-            matriks[it][j] = path[it];
-            it++;j=0;
-            clear(matriks[it],14);
+            matriks[it][j] = 0x00;
+            j=0;l++;
+            clear(matriks[l],14);
         }
         it++;
     }
-    matriks[it][j]= 0x00;
+    matriks[l][j]= 0x00;
 }
 
 
@@ -471,9 +428,11 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
     int it = 0;
     int bol = 0;
     int jumlahSektor = 16;
+    char blankspace[14];
+	*output = 0;
+	*index = 0;
 
     //Inisialisasi blank space
-    char blankspace[14];
     clear(blankspace,14);
 
 
@@ -492,13 +451,13 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
                 blankspace[i] = sector[it*jumlahSektor + (i+2)];
             }
             isStringSame(blankspace,checker,output);
-            break;
+            if (*output) {
+                break;
+            }
         }
         it++;
     }
-    if(*output) {
-        *index = it-1;
-    }
+    *index = it+1;
 }
 
 
@@ -512,10 +471,12 @@ void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char 
     //FileName adalah matriks yang diakses setiap baris
     char fileName[14];
     int it =0; int cslas; int bol = 1;
-    countChar(pathParent,'/',&cslas);
 
     if (pathParent[it]!=0x00) {
+
+    countChar(pathParent,'/',&cslas);
         makePathtoMatriks(pathParent,'/',matriks);
+        *output = bol;
         while (bol==1 && it<=cslas) {
             
             //CCC (clear copy cari)
@@ -525,7 +486,6 @@ void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char 
             it++;
             bol = *output;
         }
-        *output = bol;
     }
     else {
         *output = 1;
@@ -534,19 +494,19 @@ void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char 
 }
 
 void searchFile(char *dirsOrFile, char *path, char *index, char *success, char parentIndex) {
-    char pathParent[960]; //64 baris * 14+1 kolom, +1 kolom buat 0x00?,  path Parent without file
+    char pathParent[1024]; //64 baris * 14+2 kolom, +1 kolom buat 0x00?,  path Parent without file
     char file[14];
     int idx;
-
+    clear(file,14);
     takeFileNameFromPath(path,pathParent,file);
-
     //Check apakah Parent atau foldernya valid atau tidak
     searchDirectoryParent(dirsOrFile,pathParent,&idx,success,parentIndex);
+
     if (*success==0) {
         //Do nothing 
     }
-    else {
+    else if (*success==1){
         //Check apakah filenya valid atau tidak
-        isSameSector(dirsOrFile,idx,file,index,success);    
+        isSameSector(dirsOrFile,idx,file,index,success);   
     }
 }

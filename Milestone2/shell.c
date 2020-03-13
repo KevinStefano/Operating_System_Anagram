@@ -34,7 +34,7 @@ int main() {
         
 
         interrupt(0x21, 0x0, "Anagram > ",0,0);
-        interrupt(0x21, 0x1, &masukkan,0,0);
+        interrupt(0x21, 0x1, masukkan,0,0);
 
         type_masukkan = command(masukkan);
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
@@ -50,7 +50,9 @@ int main() {
         }
                         
 
-        if (type_masukkan == 111) { //cd 
+        if (type_masukkan == 111) { //cd
+        interrupt(0x21,0x02,dirsOrFile,0x101,0);
+        interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
             if (sumKataSetelahSpasi>=2) {
                 interrupt(0x21, 0x00, "Masukkan salah", 0,0);
                 enter();
@@ -72,7 +74,7 @@ int main() {
                             enter();
                         }
                         else {
-                            curdirtemporal = curdirtemporal;
+                            curdir = curdirtemporal;
                             interrupt(0x21, 0x00, "Back 1 level to ",0,0);
                             interrupt(0x21, 0x00, fileName, 0,0);
                             enter();
