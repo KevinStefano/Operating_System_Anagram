@@ -33,13 +33,14 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    //interrupt(0x21,0x00,"Masukkann pilihan\n\r",0,0);
-    // interrupt(0x21,0x00,"1.Shell\n\r",0,0);
-    // interrupt(0x21,0x01,input,0,0);
-    // if(input[0] == 0x31) {
+    interrupt(0x21,0x00,"Masukkann pilihan\n\r",0,0);
+    interrupt(0x21,0x00,"1.Shell\n\r",0,0);
+    interrupt(0x21,0x01,&input,0,0);
+    if(input[0] == 0x31) {
         interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
-    //else
-        // interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
+    }else{
+        interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
+    }
     
   while (1){
   }
@@ -327,27 +328,35 @@ void isStringSame (char *stringInput1, char *stringInput2, int *output) //output
 {
     int it =0;
     int bol = 1; //true
-    while (stringInput1[it]!=0x00 && stringInput2[it]!=0x00) {
-        if (stringInput1[it] == stringInput2[it]) {
-            it++;
-            bol = bol*1;
+    int ls1, ls2;
+    lengthString(stringInput1,&ls1);
+    lengthString(stringInput2,&ls2);
+    if (ls1==ls2) {
+        while (bol ==1 && (stringInput1[it]!=0x00 )) {
+            if (stringInput1[it] == stringInput2[it]) {
+                it++;
+                bol = bol*1;
+            }
+            else {
+                bol= bol*0;
+                break;
+            }
         }
-        else {
-            bol= bol*0;
-            break;
-        }
-    }
-    if (bol==0) {
-        *output = 0;
-    }
-    else {
-        if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
+        if (bol==0) {
             *output = 0;
         }
         else {
-            *output =1;
+            if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
+                *output = 0;
+            }
+            else {
+                *output =1;
+            }
         }
     }
+    else {
+        *output = 0;
+    }  
 }
 
 void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjangKopian) {
@@ -392,7 +401,7 @@ void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
     
     //Inisialisasiawal
     //clear dengan pnjnng nama files 14 sektor
-    clear(matriks[it],14);
+    clear(matriks[l],14);
     while(1) {
         if (path[it] == 0x00) {
             break;
@@ -408,7 +417,7 @@ void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
         }
         it++;
     }
-    matriks[l][j]= 0x00;
+    matriks[l+1][0]= 0x00;
 }
 
 
