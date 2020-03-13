@@ -33,16 +33,15 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    interrupt(0x21,0x00,"Masukkan pilihan\n\r",0,0);
-    interrupt(0x21,0x00,"1.Shell\n\r",0,0);
-    interrupt(0x21,0x01,input,0,0);
-    if(input[0] == 0x31)
+    //interrupt(0x21,0x00,"Masukkann pilihan\n\r",0,0);
+    // interrupt(0x21,0x00,"1.Shell\n\r",0,0);
+    // interrupt(0x21,0x01,input,0,0);
+    // if(input[0] == 0x31) {
         interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
-    else
+    //else
         interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
     
   while (1){
-
   }
 }
 
@@ -174,8 +173,13 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     char directory_path[512];
     char sub_buffer[512];
     char idx_parent, dir_valid, idx_file, file_exist, idx_sector;
-    int i, j, k, l, m = 0, count_emptymap = 0, buffer_length = 0, filename_length = 0, count_neededsector, file_index;
+    int i, j, k, l, count_neededsector, file_index;
     int available_entries;
+    int count;
+    int m =0;
+    int count_emptymap = 0;
+    int buffer_length = 0;
+    int filename_length = 0;
 
     readSector(map,0x100);
     readSector(file1,0x101);
@@ -509,3 +513,4 @@ void searchFile(char *dirsOrFile, char *path, char *index, char *success, char p
         isSameSector(dirsOrFile,idx,file,index,success);   
     }
 }
+

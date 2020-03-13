@@ -21,6 +21,9 @@ int IsStringSameBol(char *stringInput1, char *stringInput2);
 void printString(char *string);
 
 int main() {
+          
+    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.0 ",0,0);
+    enter();
     while (1) {
         char masukkan[200];
         int type_masukkan;
@@ -43,7 +46,7 @@ int main() {
         int matriks_length;
         int matriks_path_length;
 
-        
+  
         interrupt(0x21,0x02,dirsOrFile,0x101,0);
         interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
         interrupt(0x21, 0x0, "Anagram > ",0,0);
@@ -618,12 +621,13 @@ void listAll(char* dir, char matriks[64][14], char parentIndex) {
 }
 
 void makeDir(char* dir, char matriks[64][14], int* success, char parentIndex) {
+    int  i, j, k, foldername_length;
+    char idx;
     *success = 0;
-    int idx, i, j, k, foldername_length;
     for(k = 1; matriks[k][0] != 0x00; k++) {
         lengthString(matriks[k],&foldername_length);
         searchIndexbyFileName(dir,matriks[k],parentIndex,&idx);
-        if(idx == -1 || idx == -2) {
+        if(IsStringSameBol(&idx,-1 +'0') || IsStringSameBol(idx,-2 + '0')) {
             for(i = 0; i < 64; i++) {
                 if(dir[i*16+2] == 0x00) break;
             }
@@ -647,5 +651,6 @@ void makeDir(char* dir, char matriks[64][14], int* success, char parentIndex) {
         *success = -1;
         return;              
     }
+    
     
 }
