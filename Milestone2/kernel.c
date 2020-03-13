@@ -33,15 +33,15 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    interrupt(0x21,0x00,"Masukkan pilihan\n\r",0,0);
-    interrupt(0x21,0x00,"1.Shell\n\r",0,0);
-    interrupt(0x21,0x01,input,0,0);
-    if(input[0] == 0x31)
+    //interrupt(0x21,0x00,"Masukkann pilihan\n\r",0,0);
+    // interrupt(0x21,0x00,"1.Shell\n\r",0,0);
+    // interrupt(0x21,0x01,input,0,0);
+    // if(input[0] == 0x31) {
         interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
-    else
-        interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
+    //else
+        // interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
+    
   while (1){
-
   }
 }
 
@@ -76,14 +76,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
    }
 }
 
-void printString(char *string){
-    int i = 0;
-    while(string[i] != '\0'){
-        interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
-        i++;
-    }
-
-}
 void readString(char* string)
 {
     //Inisialisasi awal string
@@ -101,11 +93,10 @@ void readString(char* string)
         else {
             //Jika huruf masukkan adalah backspac
             if (huruf == 0x8 ) {
+                if (i>=1) {
                     interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
                     interrupt(0x10, (0xe<<8)+0x0, 0, 0, 0); //jadiin nul
                     interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
-                if (i>=1) {
-                    string[i] = 0x00;
                     i--;
                 }
     
@@ -173,8 +164,13 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     char directory_path[512];
     char sub_buffer[512];
     char idx_parent, dir_valid, idx_file, file_exist, idx_sector;
-    int i, j, k, l, m = 0, count_emptymap = 0, buffer_length = 0, filename_length = 0, count_neededsector, file_index;
+    int i, j, k, l, count_neededsector, file_index;
     int available_entries;
+    int count;
+    int m =0;
+    int count_emptymap = 0;
+    int buffer_length = 0;
+    int filename_length = 0;
 
     readSector(map,0x100);
     readSector(file1,0x101);
@@ -505,5 +501,13 @@ void searchFile(char *dirsOrFile, char *path, char *index, char *success, char p
     else if (*success==1){
         //Check apakah filenya valid atau tidak
         isSameSector(dirsOrFile,idx,file,index,success);   
+    }
+}
+
+void printString(char *string){
+    int i = 0;
+    while(string[i] != '\0'){
+        interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
+        i++;
     }
 }
