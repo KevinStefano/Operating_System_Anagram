@@ -40,7 +40,6 @@ int main() {
         interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
     else
         interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
-    
   while (1){
 
   }
@@ -296,7 +295,6 @@ int div(int bil1, int bil2){
         z++;
     }
     return z-1;
-
 }
 
 void enter() {
