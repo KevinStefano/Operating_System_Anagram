@@ -39,7 +39,7 @@ int main() {
     // if(input[0] == 0x31) {
         interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
     //else
-        interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
+        // interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
     
   while (1){
   }
@@ -76,14 +76,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
    }
 }
 
-void printString(char *string){
-    int i = 0;
-    while(string[i] != '\0'){
-        interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
-        i++;
-    }
-
-}
 void readString(char* string)
 {
     //Inisialisasi awal string
@@ -101,11 +93,10 @@ void readString(char* string)
         else {
             //Jika huruf masukkan adalah backspac
             if (huruf == 0x8 ) {
+                if (i>=1) {
                     interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
                     interrupt(0x10, (0xe<<8)+0x0, 0, 0, 0); //jadiin nul
                     interrupt(0x10, (0xe<<8)+0x8, 0, 0, 0); //backspace 1x
-                if (i>=1) {
-                    string[i] = 0x00;
                     i--;
                 }
     
@@ -514,3 +505,10 @@ void searchFile(char *dirsOrFile, char *path, char *index, char *success, char p
     }
 }
 
+void printString(char *string){
+    int i = 0;
+    while(string[i] != '\0'){
+        interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
+        i++;
+    }
+}

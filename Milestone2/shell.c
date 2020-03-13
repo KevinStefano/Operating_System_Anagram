@@ -22,7 +22,7 @@ void printString(char *string);
 
 int main() {
           
-    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.0 ",0,0);
+    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.0 ",0,0);
     enter();
     while (1) {
         char masukkan[200];
@@ -62,7 +62,7 @@ int main() {
             path[j] = matriks[1][j];
             j++;
         }
-                        
+            
         if (type_masukkan == 111) { //cd
             if (sumKataSetelahSpasi>=2) {
                 interrupt(0x21, 0x00, "Masukkan salah", 0,0);
@@ -117,6 +117,30 @@ int main() {
         else if(type_masukkan == 112) { // ls
             listAll(dirsOrFile,matriks,curdir);
         }
+        else if (type_masukkan == 113) {
+            clear(fileName,14);
+            i=2;
+            j=0;
+            while(masukkan[i]!=0x00 &&j<14) {
+                fileName[j] = masukkan[i];
+                i++;
+                j++;
+            }
+            fileName[j]=0x00;
+            if (fileName[0]!=0x00) {
+                out=0;
+                interrupt(0x21, curdir << 8 | 0x6, &fileName, 0x2000, &out);
+                enter();
+                if (out==1) {
+                    printString("Berhasil execute");
+                    enter();
+                }
+                else {
+                    printString("Gagal");
+                    enter();
+                }
+            }
+        }
         else if(type_masukkan == 115) { // mkdir
             if(matriks[1][0] == 0x00) {
                 interrupt(0x21,0x00,"Nama folder tidak ada\n\r",0,0);
@@ -143,18 +167,13 @@ int command(char* input) {
     
     //Pencarian lengthstringSebelom space OR sebelum /
     while (input[it]!=0x00) {
-        if (input[it]==0x2F) { // /
-            break;
-        }
         if (input[it]==0x20) { // space
             break; 
         }
         it++;
+    }
 
         if (input[it]==0x20) {
-            lengthStringSebelomSpace = it;
-        }
-        else if (input[it]==0x2F && input[it-1]==0x2E) { 
             lengthStringSebelomSpace = it;
         }
         else {
@@ -174,8 +193,8 @@ int command(char* input) {
             bol=0;
             return 112;
         }
-        isStringSame(masukkan,"./",&bol);
-        if (bol==1) {
+
+        if (masukkan[0]==0x2E && masukkan[1]=='/') {
             bol=0;
             return 113;
         }
@@ -189,13 +208,11 @@ int command(char* input) {
             bol = 0;
             return 115;
         }
-    }
 }
 
 void checkmatriks(char matriks[64][14], char *curdir, char* dirs, char *succes) {
     // cd a/b/c
     //c curdir
-    //curdir bisa file atau folder
 
     int fileName[14];
     char curdirs;
@@ -650,7 +667,14 @@ void makeDir(char* dir, char matriks[64][14], int* success, char parentIndex) {
         }
         *success = -1;
         return;              
+    } 
+}
+
+
+void printString(char *string){
+    int i = 0;
+    while(string[i] != '\0'){
+        interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
+        i++;
     }
-    
-    
 }
