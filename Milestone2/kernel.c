@@ -34,13 +34,13 @@ char buffer[8192];
 int main() {
     makeInterrupt21();
     interrupt(0x21,0x00,"Masukkan pilihan\n\r",0,0);
-    interrupt(0x21,0x00,"1.Shell\n\r",0,0);
-    interrupt(0x21,0x01,input,0,0);
-    if(input[0] == 0x31) {
+    // interrupt(0x21,0x00,"1.Shell\n\r",0,0);
+    // interrupt(0x21,0x01,input,0,0);
+    // if(input[0] == 0x31) {
         interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
-    } else {
-        interrupt(0x21,0x00, "Masukan tidak valid\n\r", 0, 0);
-    }
+    // } else {
+    //     interrupt(0x21,0x00, "Masukan tidak valid\n\r", 0, 0);
+    // }
     
   while (1){
 
@@ -408,7 +408,7 @@ void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
             j++;
         }
         else {
-            matriks[it][j] = 0x00;
+            matriks[l][j] = 0x00;
             j=0;l++;
             clear(matriks[l],14);
         }

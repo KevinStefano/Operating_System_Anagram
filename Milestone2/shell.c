@@ -9,17 +9,21 @@ void enter();
 void takeFileNameFromPath (char *path, char *directoryPath, char *fileName);
 void clear(char *buffer, int length);
 void searchFileNameParentbyIndexFromChild(char *dirs, int* idx, char* stringOutput);
-void searchIndexbyFileName (char *dir, char* stringInput, int idxParent, int* Idxoutput);
+void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* Idxoutput);
 void checkmatriks(char matriks[64][16], char *curdir, char* dirs, char *succes);
- 
+int mod(int bil1, int bil2);
+int div(int bil1, int bil2);
+void printInteger(int i); 
+int IsStringSameBol(char *stringInput1, char *stringInput2);
+
 int main() {
     while (1) {
         char masukkan[200];
         int type_masukkan;
         int sumKataSetelahSpasi;
         int kataSetelahSpasi;
-        char matriks[64][200];
-        char matrikspath[64][16];
+        char matriks[64][14];
+        char matrikspath[64][14];
         char dirsOrFile[1024];
         char path[14];
         char fileName[14];
@@ -34,13 +38,11 @@ int main() {
         
 
         interrupt(0x21, 0x0, "Anagram > ",0,0);
-        interrupt(0x21, 0x1, masukkan,0,0);
+        interrupt(0x21, 0x1, &masukkan,0,0);
 
         type_masukkan = command(masukkan);
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
         makePathtoMatriks(masukkan, 0x20, matriks);
-
-
 
         //Ambil element kedua matriks
         clear(path,14);
@@ -65,6 +67,7 @@ int main() {
                 if (out==1) {
                     if (curdir == 0xFF) {
                         interrupt(0x21, 0x00, "Stay on level",0,0);
+                        enter();
                     }
                     else {
                         clear(fileName,14);
@@ -84,10 +87,11 @@ int main() {
                 else {
                     //KASUS cd a/b/c/d
                         //Pbuat path jadi split
-                        makePathtoMatriks(path,"/",matrikspath);
-                        checkmatriks(matriks,&curdirtemporal,dirsOrFile,&out);
+                        makePathtoMatriks(path,'/',matrikspath);
+                        checkmatriks(matrikspath,&curdirtemporal,dirsOrFile,&out);
                         if (out==0) {
                             interrupt(0x21, 0x00, "Gagal... ",0,0);
+                            enter();
                         }
                         else {
                             curdir = curdirtemporal;
@@ -164,10 +168,10 @@ void checkmatriks(char matriks[64][16], char *curdir, char* dirs, char *succes) 
     int fileName[14];
     char curdirs;
     char idxP;
-    int idx;
+    char idx;
     int output;
     int out;
-    int i =1;
+    int i =0;
     int j,k;
     int it=0;
     int idxParent;
@@ -186,26 +190,36 @@ void checkmatriks(char matriks[64][16], char *curdir, char* dirs, char *succes) 
         //Jika beda dengan ".."
         else {
             idx =0;
+            
+                        interrupt(0x21, 0x00,matriks[i],0,0);
             searchIndexbyFileName(dirs,matriks[i],curdirs,&idx);
             simpanIdx=idx;
             //Pengecheckan dengan keluaran idx
             //Jika nilai Idx>0 atau matriks nilainya sama dengan parent curdirs
-            if (idx>=0) { 
+            if (!IsStringSameBol(&idx,'0'+(-1))&&!IsStringSameBol(&idx,'0'+(-2))) { 
+                
                 curdirs = simpanIdx;
                 //Jika curdir skrg bukan file
-                if(dirs[simpanIdx+1]!=0xFF) {
+                if (dirs[simpanIdx]==0x00 && dirs[simpanIdx+1]==0x00) {
+                    interrupt(0x21, 0x00,"Folders/file tidak ada",0,0);
+                    enter();
+                    *succes =0;
+                    break;
+                    
+                }
+                else if(dirs[simpanIdx+1]!=0xFF) {
                     i++;
                 }
                 //Jika curdir sekarang adalah file
                 else {
                     //Jika masih ada next di matriksnya gagal
                     if (matriks[i+1]!=0x00) {
-                        break; //Program gawgal
                         *succes = 0;
+                        break; //Program gawgal
                     }
                     else {
-                        break;
                         *succes = 1;
+                        break;
                     }
                 }
             }
@@ -310,7 +324,7 @@ void isStringSame (char *stringInput1, char *stringInput2, int *output) //output
 {
     int it =0;
     int bol = 1; //true
-    while (stringInput1[it]!=0x00 && stringInput2[it]!=0x00) {
+    while (bol ==1 && stringInput1[it]!=0x00 && stringInput2[it]!=0x00) {
         if (stringInput1[it] == stringInput2[it]) {
             it++;
             bol = bol*1;
@@ -329,6 +343,33 @@ void isStringSame (char *stringInput1, char *stringInput2, int *output) //output
         }
         else {
             *output =1;
+        }
+    }
+}
+
+int IsStringSameBol(char *stringInput1, char *stringInput2) //output bernilai 0/1 0 jika beda 1 jika sama
+{
+    int it =0;
+    int bol = 1; //true
+    while (bol ==1 && stringInput1[it]!=0x00 && stringInput2[it]!=0x00) {
+        if (stringInput1[it] == stringInput2[it]) {
+            it++;
+            bol = bol*1;
+        }
+        else {
+            bol= bol*0;
+            break;
+        }
+    }
+    if (bol==0) {
+        return 0;
+    }
+    else {
+        if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
+            return 0;
+        }
+        else {
+            return 1;
         }
     }
 }
@@ -376,28 +417,30 @@ void countChar(char *stringInput, char c, int *count_Char) {
     *count_Char= jumlah;
 }
 
-void makePathtoMatriks (char *path, char c, char matriks[64][200]) {
-    int it=0; int j=0;
+void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
+    int it=0; int j=0; int l=0;
     
     //Inisialisasiawal
     //clear dengan pnjnng nama files 14 sektor
-    clear(matriks[it],200);
+    clear(matriks[l],14);
     while(1) {
         if (path[it] == 0x00) {
             break;
         }
         else if (path[it]!= c) {
-            matriks[it][j] = path[it];
+            matriks[l][j] = path[it];
+
             j++;
         }
         else {
-            matriks[it][j] = path[it];
-            it++;j=0;
-            clear(matriks[it],200);
+            matriks[l][j] = 0x00;
+            j=0;l++;
+            clear(matriks[l],14);
         }
         it++;
     }
-    matriks[it][j]= 0x00;
+
+    matriks[l][j]= 0x00;
 }
 
 void enter() {
@@ -430,26 +473,31 @@ void searchFileNameParentbyIndexFromChild(char *dirs, int* idx, char* stringOutp
     
 }
 
-void searchIndexbyFileName (char *dir, char* stringInput, int idxParent, int* IdxChildoutput) {
+void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* IdxChildoutput) {
     //Output
     //Jika didapat filename di dir, idx = indexnya
     //jika tidak didapat di dir, idx =-1
     //Jika 
-    
+    int out;
     int l=0;
     int j=0;
     int output=0;
     int flag=0;
     char fileNameOutput[14];
+
     while (j<64) {
+        clear(fileNameOutput,14);
+
+                    interrupt(0x21, 0x00,"yee",0,0);
         while (l<14) {
-            clear(fileNameOutput,14);
             fileNameOutput[l] = dir[j*16+2+l];
+
+                    interrupt(0x21, 0x00,fileNameOutput,0,0);
             l++;
         }
         isStringSame(stringInput,fileNameOutput,&output);
         if (output==1) {
-            if (dir[j*16]==idxParent) {
+            if (IsStringSameBol(dir[j*16],idxParent)) {
                 break;
             }
             else {
@@ -457,14 +505,18 @@ void searchIndexbyFileName (char *dir, char* stringInput, int idxParent, int* Id
             }
         }
     }
-    if ((output==1 && dir[j*16]==idxParent)) {
-        *IdxChildoutput = j*16;
+    printInteger(dir[j*i]);
+    printInteger(flag);
+    isStringSame(dir[j*16],idxParent,&out);
+    if (output==1 && out==1) {
+        *IdxChildoutput = j*16 + '0';
     }
     else if (flag>0) {
-        *IdxChildoutput = -2;
+        *IdxChildoutput = -2 + '0';
     }
     else if (output==0){
-        *IdxChildoutput = -1;
+
+        *IdxChildoutput = -1 + '0';
     }
 }
 
@@ -488,4 +540,34 @@ void clear(char *buffer, int length) {
     for(i = 0; i < length; i++) {
         buffer[i] = 0x0;
     } 
+}
+
+void printInteger(int i) {
+	int k, j;
+	char number[11]; 
+    for (k=0;k<10;k++) {
+        number[k] = '0';
+    }
+	number[10] = 0x00;
+	j = 9;
+	while (i != 0 && j >= 0) {
+		number[j] = mod(i, 10) + '0';
+		i = div(i, 10); j--;
+	}
+    interrupt(0x21, 0x00,number, 0,0);
+}
+
+int mod(int bil1, int bil2){
+    while(bil1 >= bil2){
+        bil1 = bil1 - bil2;
+    }
+    return bil1;
+}
+int div(int bil1, int bil2){
+    int z = 0;
+    while(bil2 * z<=bil1){
+        z++;
+    }
+    return z-1;
+
 }
