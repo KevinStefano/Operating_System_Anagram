@@ -21,7 +21,6 @@ void makePathtoMatriks (char *path, char c, char matriks[64][14]);
 void isSameSector(char *sector, char start, char checker[14], char *index, char *output);
 void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char *output, char idxParent);
 void searchFile(char *dirsOrFile, char *path, char *index, char *success, char parentIndex);
-void makeDir(char* foldername, int* success, char parentIndex);
 
 char input[5];
 char buff[1000];
@@ -37,11 +36,10 @@ int main() {
     interrupt(0x21,0x00,"Masukkan pilihan\n\r",0,0);
     interrupt(0x21,0x00,"1.Shell\n\r",0,0);
     interrupt(0x21,0x01,input,0,0);
-    if(input[0] == 0x31) {
+    if(input[0] == 0x31)
         interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
-    } else {
-        interrupt(0x21,0x00, "Masukan tidak valid\n\r", 0, 0);
-    }
+    else
+        interrupt(0x21,0x00, "Input tidak valid\n\r",0,0);
     
   while (1){
 
