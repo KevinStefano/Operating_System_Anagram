@@ -15,6 +15,7 @@ int mod(int bil1, int bil2);
 int div(int bil1, int bil2);
 void printInteger(int i); 
 int IsStringSameBol(char *stringInput1, char *stringInput2);
+void listAll(char* foldername, int* success, char parentIndex);
 
 int main() {
     while (1) {
@@ -35,6 +36,10 @@ int main() {
         int l;
         int idxoutput;
         int out;
+        int success = 0;
+        int matriks_length;
+        int matriks_path_length;
+
         
 
         interrupt(0x21, 0x0, "Anagram > ",0,0);
@@ -42,7 +47,7 @@ int main() {
 
         type_masukkan = command(masukkan);
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
-        makePathtoMatriks(masukkan, 0x20, matriks);
+        makePathtoMatriks(masukkan, 0x20, matriks, &matriks_length);
 
         //Ambil element kedua matriks
         clear(path,14);
@@ -104,6 +109,25 @@ int main() {
                 }
             }
         }
+        else if(type_masukkan == 112) { // ls
+
+        }
+        else if(type_masukkan == 115) { // mkdir
+            for(i = 0; i < matriks_length; i++) {
+                interrupt(0x21, curdir << 8 | 0x07,matriks[i],&success,0);
+                if(success == -2) {
+                    interrupt(0x21,0x00,"Tidak cukup entri di files\n\r",0,0);
+                }
+                else if(success == -1) {
+                    interrupt(0x21,0x00,matriks[i],0,0);
+                    interrupt(0x21,0x00," memiliki terlalu banyak karakter\n\r",0,0);
+                }
+                else if(success == -4) {
+                    interrupt(0x21,0x00,matriks[i],0,0);
+                    interrupt(0x21,0x00," sudah ada\n\r",0,0);
+                }
+            }
+        }
     }
 }
 
@@ -156,6 +180,11 @@ int command(char* input) {
         if (bol==1) {
             bol=0;
             return 114;
+        }
+        isStringSame(masukkan, "mkdir", &bol);
+        if(bol==1) {
+            bol = 0;
+            return 115;
         }
     }
 }
@@ -569,5 +598,21 @@ int div(int bil1, int bil2){
         z++;
     }
     return z-1;
+}
 
+void listAll(char* dirs, char* foldername, int* success, char parentIndex) {
+    char filename[14];
+    int i,j;
+    for(i = 0; i < 64; i++) {
+        if(dirs[i*16] == parentIndex) {
+            clear(filename,14);
+            for(j = 0; j < 14; j++) {
+                filename[j] = dirs[i*16+2+j];
+            }
+            interrupt(0x21,0x00,filename,0,0);
+            interrupt(0x21,0x00," ",0,0);
+        }
+    }
+    *success = 1;s
+    interrupt(0x21,0x00,"\n\r",0,0);
 }
