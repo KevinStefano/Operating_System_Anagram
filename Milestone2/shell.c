@@ -16,15 +16,22 @@ void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* 
 void checkmatriks(char matriks[64][14], char *curdir, char* dirs, char *succes);
 int mod(int bil1, int bil2);
 int div(int bil1, int bil2);
-void printInteger(int i); 
 int IsStringSameBol(char *stringInput1, char *stringInput2);
 void printString(char *string);
+void printMatrikstoPath(char matriks[64][14]);
+void pushToMatriks(char matriks[64][14], char *stringInput);
+void popMatriks(char matriks[64][14]);
+
+char matrikscurdir[64][14];
 
 int main() {
           
-    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.0 ",0,0);
+    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.0 ",0,0);
     enter();
+    //Inisialisasi matriksCurdir
+
     while (1) {
+
         char masukkan[200];
         int type_masukkan;
         int sumKataSetelahSpasi;
@@ -47,14 +54,21 @@ int main() {
         int matriks_path_length;
 
   
+      
+
         interrupt(0x21,0x02,dirsOrFile,0x101,0);
         interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
-        interrupt(0x21, 0x0, "Anagram > 135 ",0,0);
-        interrupt(0x21, 0x1, masukkan,0,0);
+        interrupt(0x21, 0x0, "Anagram/",0,0);
+        
+        //printMatrikstoPath(matrikscurdir);
+        printString("> ");
+        interrupt(0x21, 0x1, &masukkan,0,0);
+
 
         type_masukkan = command(masukkan);
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
         makePathtoMatriks(masukkan, 0x20, matriks);
+        //pushToMatriks(matrikscurdir,masukkan);
 
         //Ambil element kedua matriks
         clear(path,14);
@@ -90,6 +104,8 @@ int main() {
                             interrupt(0x21, 0x00, "Back 1 level to ",0,0);
                             interrupt(0x21, 0x00, fileName, 0,0);
                             enter();
+                            //popMatriks(matrikscurdir);
+                            
                         }     
                     }
                 }
@@ -110,6 +126,7 @@ int main() {
                             searchFileNameParentbyIndexFromChild(dirsOrFile,&curdir,fileName);
                             interrupt(0x21, 0x00,fileName,0,0);
                             enter();
+                            //pushToMatriks(matrikscurdir,fileName);
                         }
                 }
             }
@@ -202,6 +219,43 @@ int command(char* input) {
             bol = 0;
             return 115;
         }
+}
+
+void printMatrikstoPath(char matriks[64][14]) {
+    int i=0;
+    int j=0;
+    while (i<64) {
+        printString(matriks[i]);
+        if (matriks[i]==0x00) {
+            printString("/");
+        }
+        i++;
+    }
+}
+
+void pushToMatriks(char matriks[64][14], char *stringInput) {
+    int i = 0;
+    int j=0;
+    while (matriks[i]!=0x00 && i<64) {
+        i++;
+    }
+    
+    //masukkan
+    while(stringInput[j]!=0x00) {
+        matriks[i][j] ==stringInput[j];
+        j++;
+    }
+}
+
+
+void popMatriks(char matriks[64][14]) {
+    int i=0;
+    if (matriks[0] != 0x00) {
+        while (matriks[i]!= 0x00) {
+            i++;
+        }
+        clear(matriks[i],14);
+    }
 }
 
 void checkmatriks(char matriks[64][14], char *curdir, char* dirs, char *succes) {
@@ -702,8 +756,7 @@ int div(int bil1, int bil2) {
     }
     return z-1;
 }
-void printInteger(int i) {
-}
+void printInteger(int i) {}
 
 
 void printString(char *string){
