@@ -4,13 +4,14 @@ void isStringSame (char *stringInput1, char *stringInput2, int *output); //outpu
 void lengthString(char *stringInput, int *length_String);
 int command(char* input);
 void countChar(char *stringInput, char c, int *count_Char);
-void makePathtoMatriks (char *path, char c, char matriks[64][200]);
+void makePathtoMatriks (char *path, char c, char matriks[64][200], int* matriksLength);
 void enter();
 void takeFileNameFromPath (char *path, char *directoryPath, char *fileName);
 void clear(char *buffer, int length);
 void searchFileNameParentbyIndexFromChild(char *dirs, int* idx, char* stringOutput);
 void searchIndexbyFileName (char *dir, char* stringInput, int idxParent, int* Idxoutput);
 void checkmatriks(char matriks[64][16], char *curdir, char* dirs, char *succes);
+void listAll(char* foldername, int* success, char parentIndex);
  
 int main() {
     while (1) {
@@ -31,6 +32,10 @@ int main() {
         int l;
         int idxoutput;
         int out;
+        int success = 0;
+        int matriks_length;
+        int matriks_path_length;
+
         
 
         interrupt(0x21, 0x0, "Anagram > ",0,0);
@@ -38,7 +43,7 @@ int main() {
 
         type_masukkan = command(masukkan);
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
-        makePathtoMatriks(masukkan, 0x20, matriks);
+        makePathtoMatriks(masukkan, 0x20, matriks, &matriks_length);
 
 
 
@@ -84,7 +89,7 @@ int main() {
                 else {
                     //KASUS cd a/b/c/d
                         //Pbuat path jadi split
-                        makePathtoMatriks(path,"/",matrikspath);
+                        makePathtoMatriks(path,"/",matrikspath,&matriks_path_length);
                         checkmatriks(matriks,&curdirtemporal,dirsOrFile,&out);
                         if (out==0) {
                             interrupt(0x21, 0x00, "Gagal... ",0,0);
@@ -97,6 +102,25 @@ int main() {
                             interrupt(0x21, 0x00,fileName,0,0);
                             enter();
                         }
+                }
+            }
+        }
+        else if(type_masukkan == 112) { // ls
+
+        }
+        else if(type_masukkan == 115) { // mkdir
+            for(i = 0; i < matriks_length; i++) {
+                interrupt(0x21, curdir << 8 | 0x07,matriks[i],&success,0);
+                if(success == -2) {
+                    interrupt(0x21,0x00,"Tidak cukup entri di files\n\r",0,0);
+                }
+                else if(success == -1) {
+                    interrupt(0x21,0x00,matriks[i],0,0);
+                    interrupt(0x21,0x00," memiliki terlalu banyak karakter\n\r",0,0);
+                }
+                else if(success == -4) {
+                    interrupt(0x21,0x00,matriks[i],0,0);
+                    interrupt(0x21,0x00," sudah ada\n\r",0,0);
                 }
             }
         }
@@ -152,6 +176,11 @@ int command(char* input) {
         if (bol==1) {
             bol=0;
             return 114;
+        }
+        isStringSame(masukkan, "mkdir", &bol);
+        if(bol==1) {
+            bol = 0;
+            return 115;
         }
     }
 }
@@ -376,28 +405,29 @@ void countChar(char *stringInput, char c, int *count_Char) {
     *count_Char= jumlah;
 }
 
-void makePathtoMatriks (char *path, char c, char matriks[64][200]) {
-    int it=0; int j=0;
+void makePathtoMatriks (char *path, char c, char matriks[64][200], int* matriksLength) {
+    int it=0; int j=0; int l = 0;
     
     //Inisialisasiawal
     //clear dengan pnjnng nama files 14 sektor
-    clear(matriks[it],200);
+    clear(matriks[l],200);
     while(1) {
         if (path[it] == 0x00) {
             break;
         }
         else if (path[it]!= c) {
-            matriks[it][j] = path[it];
+            matriks[l][j] = path[it];
             j++;
         }
         else {
-            matriks[it][j] = path[it];
-            it++;j=0;
-            clear(matriks[it],200);
+            matriks[l][j] = path[it];
+            l++;j=0;
+            clear(matriks[l],200);
         }
         it++;
     }
-    matriks[it][j]= 0x00;
+    matriks[l][j]= 0x00;
+    *matriksLength = l;
 }
 
 void enter() {
@@ -488,4 +518,27 @@ void clear(char *buffer, int length) {
     for(i = 0; i < length; i++) {
         buffer[i] = 0x0;
     } 
+}
+
+void listAll(char* foldername, int* success, char parentIndex) {
+    char files[1024], char filename[14];
+    int i,j;
+
+
+    interrupt(0x21,0x02,files,0x101,0);
+    interrupt(0x21,0x02,files+512,0x102,0);
+    interrupt(0x21,0x00,foldername,0,0);
+    interrupt(0x21,0x00,":\n\r",0,0);
+    for(i = 0; i < 64; i++) {
+        if(files[i*16] == parentIndex) {
+            clear(filename,14);
+            for(j = 0; j < 14; j++) {
+                filename[j] = files[i*16+2+j];
+            }
+            interrupt(0x21,0x00,filename,0,0);
+            interrupt(0x21,0x00," ",0,0);
+        }
+    }
+    *success = 1;
+    interrupt(0x21,0x00,"\n\r",0,0);
 }
