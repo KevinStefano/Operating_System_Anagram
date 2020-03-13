@@ -74,9 +74,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0x06:
          executeProgram(BX, CX, DX, AH);
          break;
-      case 0x07:
-         makeDir(BX,CX,AH);
-         break;
       default:
          printString("Invalid interrupt");
    }
@@ -513,43 +510,4 @@ void searchFile(char *dirsOrFile, char *path, char *index, char *success, char p
         //Check apakah filenya valid atau tidak
         isSameSector(dirsOrFile,idx,file,index,success);   
     }
-}
-
-void makeDir(char* foldername, int* success, char parentIndex) {
-    *success = 0;
-    char files[1024];
-    int foldername_length, i, j, idx;
-
-    interrupt(0x21,0x02,files,0x101,0);
-    interrupt(0x21,0x02,files+512,0x102,0);
-
-    lengthString(foldername,&foldername_length);
-    searchFile(files,foldername,&idx,success,parentIndex);
-    if(*success == 1) {
-        *success = -4;
-        return;
-    }
-    if(foldername_length > 14) {
-        *success = -1;
-        return;
-    }
-
-    for(i = 0; i < 64; i++) {
-        if(files[i*16+2] == 0x00) break;
-    }
-    if(i == 64) {
-        *success = -2;
-        return;
-    }
-
-    files[i*16] = parentIndex;
-    files[i*16+1] = 0xFF;
-
-    for(j = 0; j < 14; j++) {
-        files[i*16+2+j] = 0x00;
-    }
-    for(j = 0; j < foldername_length; j++) {
-        files[i*16+2+j] = foldername[j];
-    }
-    *success = 1;
 }
