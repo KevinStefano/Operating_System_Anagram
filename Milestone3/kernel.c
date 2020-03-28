@@ -78,7 +78,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          executeProgram(BX, CX, DX, AH);
          break;
       case 0x07:
-         putArgs(BX, CX, DX);
+         putStr(BX, CX, DX);
          break;
       case 0x08:
          getCurdir(BX);
