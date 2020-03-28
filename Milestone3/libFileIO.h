@@ -1,5 +1,8 @@
 //LIBRARY FILE I/O
 
+#ifndef __LIBFILEIO_H
+#define __LIBFILEIO_H
+
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void readSector(char *buffer, int sector) ;
@@ -347,3 +350,4 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
     *index = it+1;
 }
 
+#endif

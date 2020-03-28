@@ -1,6 +1,9 @@
 //LIBRARY TEKS
 //isi : fungsi minput (read string) dan fungsi output (print string)
 
+#ifndef __LIBTEKS_H
+#define __LIBTEKS_H
+
 void printString(char *string); 
 void readString(char *string); 
 
@@ -44,7 +47,8 @@ void readString(char* string)
                 i++;
             }
         }
-         
     }
     enter();
  }
+
+#endif
