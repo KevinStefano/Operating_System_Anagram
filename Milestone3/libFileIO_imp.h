@@ -144,6 +144,53 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
 
 }
 
+void deleteFile(char *path, int *result, char parentIndex) {
+
+    char success;
+    int idx;
+    char dirsOrFile[1024];
+    char maps[512];
+    char sectors[512];
+    int i = 0;
+    
+    //Inisialisasi awal dengan memasukkan data
+    interrupt(0x21,0x02,maps,0x100,0);
+    interrupt(0x21,0x02,dirsOrFile,0x101,0);
+    interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
+	interrupt(0x21, 0x02, sectors, 0x103, 0);
+    
+    searchFile(dirsOrFile, path, &idx, &success, parentIndex);
+    //if (success) {
+        /*
+        dirsOrFile[idx*15]= 0x00;
+        dirsOrFile[(idx*15)+1]= 0x00;
+        dirsOrFile[(idx*15)+2]= 0x00;
+
+        while (i<16) {
+            //Hapus map dan sectors
+            maps[sectors[idx*16 + i]]==0x00;
+            sectors[idx*16+i]==0x00;
+            i++;
+            if (sectors[idx*16+i]==0x00 || i>=16) {
+                break;
+            }
+        }
+        writeSector(maps,0x100);
+        writeSector(dirsOrFile,0x101);
+        writeSector(dirsOrFile+512,0x102);
+        writeSector(sectors,0x103);
+        //Maka berhasil
+        */
+        //*result = 0;
+    //}
+    /*else {
+        
+        *result = -1; //Tidak ditemukan
+    }*/
+    
+    
+}
+
 void readSector(char *buffer, int sector) 
 {
     interrupt(0x13, 0x201, buffer, div(sector, 36) * 0x100 + mod(sector, 18) + 1, mod(div(sector, 18), 2) * 0x100);

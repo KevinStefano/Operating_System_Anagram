@@ -38,7 +38,84 @@ void createFolder(char* dir, char matriks[64][14], int* success, char parentInde
     } 
 }
 
-void deleteFolder() {
+void deleteFolder(char *path, int *success, char parentIndex)
+{
+    
+    int i,j;
+    int idx = 0;
+    int idxacuan;
+    char result;
+    char dirsOrFile[1024];
+    char maps[512];
+    char sectors[512];
+    char fileName[14];
+
+    //Inisialisasi awal dengan memasukkan data
+    interrupt(0x21,0x02,maps,0x101,0);
+    interrupt(0x21,0x02,dirsOrFile,0x101,0);
+    interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
+	interrupt(0x21, 0x02, sectors, 0x103, 0);
+    searchFile(dirsOrFile, path, &idxacuan, &result, parentIndex);
+
+    if (result==0) {
+        *success = -1; //Tidak diketemukan
+    }
+    else {
+        /*
+        
+        //Hapus dalam DIrsrFile
+        while (idx<1024) {
+            //Dilakukan saat dirsOrFile idx ke 0 nya bernilai idx acuan
+            if(dirsOrFile[idx]==idxacuan && idx != idxacuan) {
+                //Jika nilai fileNamenya bukan 0x00
+                if (dirsOrFile[idx+2]!=0x00 ) {
+                    clear(fileName,14);
+                    //salin ke fileName
+                    for (i=0; i<14; i++) {
+                        fileName[i] = dirsOrFile[idx+i+2];
+                    }
+                    //lakukan rekursif
+                    deleteFolder(fileName, success, idxacuan);
+                    interrupt(0x21,0x02,maps,0x101,0);
+                    interrupt(0x21,0x02,dirsOrFile,0x101,0);
+                    interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
+                    interrupt(0x21, 0x02, sectors, 0x103, 0);
+                
+                    //Hapus folder
+                    dirsOrFile[i] = 0x00;
+                    dirsOrFile[i+1] = 0x00;
+                    dirsOrFile[i+2] = 0x00;
+                    //Hapus semua file yang ada di dalam folder
+                    j=0;
+                    while (j<16) {
+                        //Hapus map dan sectors
+                        maps[sectors[idx*16 + j]]==0x00;
+                        sectors[idx*16+j]==0x00;
+
+                        j++;
+                        if (sectors[idx*16+j]==0x00 || j>=16) {
+                            break;
+                        } 
+                    }
+                }
+            } 
+            idx = (idx+14)+2;
+        }
+
+        //Jadikan nol id ke 0, idx ke 1 idx ke 2
+        dirsOrFile[idx*15]= 0x00;
+        dirsOrFile[(idx*15)+1]= 0x00;
+        dirsOrFile[(idx*15)+2]= 0x00;
+
+        //Tulis ke sector guys ~~
+        writeSector(maps,0x100);
+        writeSector(dirsOrFile,0x101);
+        writeSector(dirsOrFile+512,0x102);
+        writeSector(sectors,0x103);
+        */
+        *success = 0;
+    }
+    
 
 }
 void listContent() {

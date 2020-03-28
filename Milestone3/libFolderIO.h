@@ -6,7 +6,7 @@
 #include "libFileIO.h"
 
 void createFolder(char* dir, char matriks[64][14], int* success, char parentIndex);
-void deleteFolder();
+void deleteFolder(char *path, int *success, char parentIndex);
 void listContent();
 
 void putStr(char curdir, char argc, char argv[64][128]);
