@@ -26,7 +26,7 @@ char matrikscurdir[64][14];
 
 int main() {
           
-    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.0 ",0,0);
+    interrupt(0x21, 0x0, "Welcome to ANAGRAMM SHELL 1.0 ",0,0);
     enter();
     //Inisialisasi matriksCurdir
 
@@ -69,8 +69,6 @@ int main() {
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
         makePathtoMatriks(masukkan, 0x20, matriks);
         //pushToMatriks(matrikscurdir,masukkan);
-
-        if (IsStringSameBol(matriks[0],))
 
         //Ambil element kedua matriks
         clear(path,14);

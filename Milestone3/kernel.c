@@ -550,7 +550,7 @@ void putStr(char curdir, char argc, char argv[64][128]){
     clear(str,512);
     str[idx1] = curdir;
     idx1++;
-    str[idx1] = = argc;
+    str[idx1] = argc;
     idx1++;
 
     //Masukkan argv ke dalam str[]

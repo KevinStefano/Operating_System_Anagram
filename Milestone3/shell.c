@@ -1,34 +1,22 @@
+#include "libFileIO.h"
+#include "libMatematika.h"
+#include "libFolderIO.h"
 
-void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjangKopian);
-void isStringSame (char *stringInput1, char *stringInput2, int *output); //output bernilai 0/1 0 jika beda 1 jika sama
-void lengthString(char *stringInput, int *length_String);
 int command(char* input);
-void countChar(char *stringInput, char c, int *count_Char);
-void makePathtoMatriks (char *path, char c, char matriks[64][14]);
 void enter();
-void takeFileNameFromPath (char *path, char *directoryPath, char *fileName);
-void clear(char *buffer, int length);
-void searchFileNameParentbyIndexFromChild(char *dirs, int* idx, char* stringOutput);
-void checkmatriks(char matriks[64][14], char *curdir, char* dirs, char *succes);
 void listAll(char* dir, char matriks[64][14], char parentIndex);
-void makeDir(char* dir, char matriks[64][14], int* success, char parentIndex);
-void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* Idxoutput);
 void checkmatriks(char matriks[64][14], char *curdir, char* dirs, char *succes);
-int mod(int bil1, int bil2);
-int div(int bil1, int bil2);
-int IsStringSameBol(char *stringInput1, char *stringInput2);
 void printString(char *string);
 void printMatrikstoPath(char matriks[64][14]);
 void pushToMatriks(char matriks[64][14], char *stringInput);
 void popMatriks(char matriks[64][14]);
 
-char matrikscurdir[64][14];
+
 
 int main() {
           
     interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.0 ",0,0);
     enter();
-    //Inisialisasi matriksCurdir
 
     while (1) {
 
@@ -53,24 +41,16 @@ int main() {
         int matriks_length;
         int matriks_path_length;
 
-  
-      
-
         interrupt(0x21,0x02,dirsOrFile,0x101,0);
         interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
         interrupt(0x21, 0x0, "Anagram/",0,0);
         
-        //printMatrikstoPath(matrikscurdir);
         printString("> ");
         interrupt(0x21, 0x1, &masukkan,0,0);
-
 
         type_masukkan = command(masukkan);
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
         makePathtoMatriks(masukkan, 0x20, matriks);
-        //pushToMatriks(matrikscurdir,masukkan);
-
-        if (IsStringSameBol(matriks[0],))
 
         //Ambil element kedua matriks
         clear(path,14);
@@ -106,7 +86,6 @@ int main() {
                             interrupt(0x21, 0x00, "Back 1 level to ",0,0);
                             interrupt(0x21, 0x00, fileName, 0,0);
                             enter();
-                            //popMatriks(matrikscurdir);
                             
                         }     
                     }
@@ -128,7 +107,6 @@ int main() {
                             searchFileNameParentbyIndexFromChild(dirsOrFile,&curdir,fileName);
                             interrupt(0x21, 0x00,fileName,0,0);
                             enter();
-                            //pushToMatriks(matrikscurdir,fileName);
                         }
                 }
             }
@@ -165,7 +143,7 @@ int main() {
                 interrupt(0x21,0x00,"Nama folder tidak ada\n\r",0,0);
             }
             else {
-                makeDir(dirsOrFile,matriks,&success,curdir);
+                createFolder(dirsOrFile,matriks,&success,curdir);
                 if(success == -2) {
                     interrupt(0x21,0x00,"Entry tidak cukup\n\r",0,0);
                 }
@@ -376,283 +354,9 @@ void checkmatriks(char matriks[64][14], char *curdir, char* dirs, char *succes) 
     *curdir=curdir;
 }
 
-
-void isSameSector(char *sector, char start, char checker[14], char *index, char *output) {
-   //sector adalah tabel dir/filenya
-   //start nya adalah indexParentnya
-   //checker adalah nama directory yang ingin kita check apakah sama atau tidak
-   //Keluarannya adalah index tempat ditemukan dan output 1/0
-
-    int i; //INISIALISASI HARUS DI AWAL!1!1
-    int it = 0;
-    int bol = 0;
-    int jumlahSektor = 16;
-
-    //Inisialisasi blank space
-    char blankspace[14];
-    clear(blankspace,14);
-
-
-    //Melakukan iterasi di sepnjang tabelfile/dir kita
-    //Tabel dir memiliki index dari  0 hingga 63
-    while (it<=63) {
-        //Check apakah P nya atau it*16 di table dir sama dengan nilai indexParent
-        if(sector[it*jumlahSektor] ==start) {
-
-            //Jika nilai index sama, maka sekarang kita check
-            //Apakah "namaFolder" nya sama atau tidak
-            clear(blankspace,14);
-
-            //Kita isi blankspace dengan namaFolder yg diambil dari sector / tabel dir
-            for(i=0;i<14;i++) {
-                blankspace[i] = sector[it*jumlahSektor + (i+2)];
-            }
-            isStringSame(blankspace,checker,output);
-            break;
-        }
-        it++;
-    }
-    *index = it-1;
-}
-
-void isStringSame (char *stringInput1, char *stringInput2, int *output) //output bernilai 0/1 0 jika beda 1 jika sama
-{
-    int it =0;
-    int bol = 1; //true
-    int ls1, ls2;
-    lengthString(stringInput1,&ls1);
-    lengthString(stringInput2,&ls2);
-    if (ls1==ls2) {
-        while (bol ==1 && (stringInput1[it]!=0x00 )) {
-            if (stringInput1[it] == stringInput2[it]) {
-                it++;
-                bol = bol*1;
-            }
-            else {
-                bol= bol*0;
-                break;
-            }
-        }
-        if (bol==0) {
-            *output = 0;
-        }
-        else {
-            if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
-                *output = 0;
-            }
-            else {
-                *output =1;
-            }
-        }
-    }
-    else {
-        *output = 0;
-    }  
-}
-
-void lengthString(char *stringInput, int *length_String) {
-    int panjang = 0;
-    while (stringInput[panjang] != 0x00) {
-        panjang++;
-    }
-    *length_String = panjang;
-}
-int IsStringSameBol(char *stringInput1, char *stringInput2) //output bernilai 0/1 0 jika beda 1 jika sama
-{
-   int it =0;
-    int bol = 1; //true
-    int ls1, ls2;
-    lengthString(stringInput1,&ls1);
-    lengthString(stringInput2,&ls2);
-    if (ls1==ls2) {
-        while (bol ==1 && (stringInput1[it]!=0x00 )) {
-            if (stringInput1[it] == stringInput2[it]) {
-                it++;
-                bol = bol*1;
-            }
-            else {
-                bol= bol*0;
-                break;
-            }
-        }
-        if (bol==0) {
-             return 0;
-        }
-        else {
-            if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
-                 return 0;
-            }
-            else {
-                 return 1;
-            }
-        }
-    }
-    else {
-        return  0;
-    }  
-}
-
-void copyString (char *stringInput, char *stringOutput, int idxMulai, int panjangKopian) {
-    int li, lo;
-    int it =0;
-
-	//hitung panjang string masukkan dan coppied output
-    lengthString(stringInput,&li);
-    lengthString(stringOutput, &lo);
-
-	//Bersihkan string output
-    clear(stringOutput, lo);
-    clear(stringOutput,li);
-    clear(stringOutput,panjangKopian);
-
-    //Validasi start
-	//Dilakukan hanya jika idxMulai lebih kecil dari panjangKopian
-    if (idxMulai >= li) {
-        //Do nothing
-    }
-    else {
-        if (panjangKopian>0) {
-            while (panjangKopian>0 && stringInput[idxMulai]!=0x00) {
-                stringOutput[it]=stringInput[idxMulai];
-                it++; idxMulai++; panjangKopian--;
-            }
-        }
-    }
-}
-
-void countChar(char *stringInput, char c, int *count_Char) {
-    int jumlah = 0;
-    int it= 0;
-    while (stringInput[it]!= 0x00) {
-        if (stringInput[it]!=c){
-            it++;
-        }
-        else {
-            jumlah ++;
-            it++;
-        }
-    }
-    *count_Char= jumlah;
-}
-
-void makePathtoMatriks (char *path, char c, char matriks[64][14]) {
-    int it=0; int j=0; int l=0;
-    
-    //Inisialisasiawal
-    //clear dengan pnjnng nama files 14 sektor
-    clear(matriks[l],14);
-    while(1) {
-        if (path[it] == 0x00) {
-            break;
-        }
-        else if (path[it]!= c) {
-            matriks[l][j] = path[it];
-            j++;
-        }
-        else {
-            matriks[l][j] = 0x00;
-            j=0;l++;
-            clear(matriks[l],14);
-        }
-        it++;
-    }
-    matriks[l+1][0]= 0x00;
-}
-
 void enter() {
     interrupt(0x10, 0xe*256+'\r',0,0,0);
     interrupt(0x10, 0xe*256+'\n',0,0,0);
-}
-
-void searchFileNameParentbyIndexFromChild(char *dirs, int* idx, char* stringOutput) {
-    //ASUMSI child memiliki index parent TERDEFINISI
-    //Diberikan idx yang berupa idx dari child
-    //Maka kita akan mencari idxParentnya dan menaruh di idx
-    //Menaruh nama fileName Parentnya di stringOutput
-    int l=0;
-    char fileNameOutput[14];
-    clear(fileNameOutput,14);
-    if (dirs[(*idx)]==0xFF) {
-        stringOutput[0] = 'N';
-        stringOutput[1] = '0';
-        stringOutput[2] = 'N';
-        stringOutput[0] = '3';
-    }
-    else {
-        while (l<14) {
-                fileNameOutput[l] = dirs[dirs[(*idx)]+2+l];
-                l++;
-            }
-            copyString(fileNameOutput,stringOutput,0,14);
-    }
-    *idx =dirs[*idx];
-    
-}
-
-void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* IdxChildoutput) {
-    //Output
-    //Jika didapat filename di dir, idx = indexnya
-    //jika tidak didapat di dir, idx =-1
-    //Jika 
-    int out;
-    int l=0;
-    int j=0;
-    int output=0;
-    int flag=0;
-    char fileNameOutput[14];
-
-
-    while (j<64) {
-        clear(fileNameOutput,14);
-        l=0;
-        while (l<14) {
-            fileNameOutput[l] = dir[j*16+2+l];
-            l++;
-        }
-        isStringSame(stringInput,fileNameOutput,&output);
-        if (output==1) {
-            if (IsStringSameBol(dir[j*16],idxParent)) {
-                break;
-            }
-            else {
-                flag++;
-            }
-        }
-        j++;
-    }
-    isStringSame(dir[j*16],idxParent,&out);
-    if (output==1 && out==1) {
-        *IdxChildoutput = j*16 + '0';
-    }
-    else if (flag>0) {
-        *IdxChildoutput = -2 + '0';
-    }
-    else if (output==0){
-
-        *IdxChildoutput = -1 + '0';
-    }
-}
-
-void takeFileNameFromPath (char *path, char *directoryPath, char *fileName) {
-    int lp, lpfix;
-    int flag =0;
-    lengthString(path,&lpfix);
-    lp = lpfix;
-    while(flag==0 && lp>=0) {
-        lp--;
-        if (path[lp]=='/') {
-            flag =1;
-        }
-    }
-    copyString(path,fileName,lp+1,lpfix-lp-1); //semoga bener
-    copyString(path,directoryPath,0,lp);
-}
-
-void clear(char *buffer, int length) {
-    int i;
-    for(i = 0; i < length; i++) {
-        buffer[i] = 0x0;
-    } 
 }
 
 void listAll(char* dir, char matriks[64][14], char parentIndex) {
@@ -693,40 +397,6 @@ void listAll(char* dir, char matriks[64][14], char parentIndex) {
     }
 }
 
-void makeDir(char* dir, char matriks[64][14], int* success, char parentIndex) {
-    int  i, j, k, foldername_length;
-    char idx;
-    *success = 0;
-    for(k = 1; matriks[k][0] != 0x00; k++) {
-        lengthString(matriks[k],&foldername_length);
-        searchIndexbyFileName(dir,matriks[k],parentIndex,&idx);
-        if(IsStringSameBol(&idx,-1 +'0') || IsStringSameBol(idx,-2 + '0')) {
-            for(i = 0; i < 64; i++) {
-                if(dir[i*16+2] == 0x00) break;
-            }
-            if(i == 64) {
-                *success = -2;
-                return;
-            }
-
-            dir[i*16] = parentIndex;
-            dir[i*16+1] = 0xFF;
-
-            for(j = 0; j < 14; j++) {
-                dir[i*16+2+j] = 0x00;
-            }
-            for(j = 0; j < foldername_length; j++) {
-                dir[i*16+2+j] = matriks[k][j];
-            }
-            *success = 1;
-            return;
-        }
-        *success = -1;
-        return;              
-    } 
-}
-
-
 void printString(char *string){
     int i = 0;
     while(string[i] != '\0'){
@@ -734,3 +404,7 @@ void printString(char *string){
         i++;
     }
 }
+
+#include "libFolderIO_imp.h"
+#include "libFileIO_imp.h"
+#include "libMatematika_imp.h"

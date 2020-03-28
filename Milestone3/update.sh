@@ -14,16 +14,4 @@ bcc -ansi -c -o shell.o shell.c
 ld86 -o shell -d shell.o lib_asm.o
 ./loadFile shell
 
-bcc -ansi -c -o libMatematika.o libMatematika.c
-ld86 -o libMatematika -d libMatematika.o lib_asm.o
-./loadFile libMatematika
-
-bcc -ansi -c -o libTeks.o libTeks.c
-ld86 -o libTeks -d libTeks.o lib_asm.o
-./loadFile libTeks
-
-bcc -ansi -c -o libFileIO.o libFileIO.c
-ld86 -o libFileIO -d libFileIO.o lib_asm.o
-./loadFile libFileIO
-
 echo c | bochs -f if2230.config
