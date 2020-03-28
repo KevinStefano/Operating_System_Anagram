@@ -6,6 +6,11 @@
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 
+void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* IdxChildoutput);
+void searchFileNameParentbyIndexFromChild(char *dirs, int* idx, char* stringOutput);
+
+int IsStringSameBol(char *stringInput1, char *stringInput2); //output bernilai 0/1 0 jika beda 1 jika sama
+void isStringSame (char *stringInput1, char *stringInput2, int *output); //output bernilai 0/1 0 jika beda 1 jika sama
 void readSector(char *buffer, int sector) ;
 void searchFile(char *dirsOrFile, char *path, char *index, char *success, char parentIndex);
 void clear(char *buffer, int length);
@@ -350,5 +355,147 @@ void isSameSector(char *sector, char start, char checker[14], char *index, char 
     }
     *index = it+1;
 }
+
+
+void searchFileNameParentbyIndexFromChild(char *dirs, int* idx, char* stringOutput) {
+    //ASUMSI child memiliki index parent TERDEFINISI
+    //Diberikan idx yang berupa idx dari child
+    //Maka kita akan mencari idxParentnya dan menaruh di idx
+    //Menaruh nama fileName Parentnya di stringOutput
+    int l=0;
+    char fileNameOutput[14];
+    clear(fileNameOutput,14);
+    if (dirs[(*idx)]==0xFF) {
+        stringOutput[0] = 'N';
+        stringOutput[1] = '0';
+        stringOutput[2] = 'N';
+        stringOutput[0] = '3';
+    }
+    else {
+        while (l<14) {
+                fileNameOutput[l] = dirs[dirs[(*idx)]+2+l];
+                l++;
+            }
+            copyString(fileNameOutput,stringOutput,0,14);
+    }
+    *idx =dirs[*idx];
+    
+}
+
+void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* IdxChildoutput) {
+    //Output
+    //Jika didapat filename di dir, idx = indexnya
+    //jika tidak didapat di dir, idx =-1
+    //Jika 
+    int out;
+    int l=0;
+    int j=0;
+    int output=0;
+    int flag=0;
+    char fileNameOutput[14];
+
+
+    while (j<64) {
+        clear(fileNameOutput,14);
+        l=0;
+        while (l<14) {
+            fileNameOutput[l] = dir[j*16+2+l];
+            l++;
+        }
+        isStringSame(stringInput,fileNameOutput,&output);
+        if (output==1) {
+            if (IsStringSameBol(dir[j*16],idxParent)) {
+                break;
+            }
+            else {
+                flag++;
+            }
+        }
+        j++;
+    }
+    isStringSame(dir[j*16],idxParent,&out);
+    if (output==1 && out==1) {
+        *IdxChildoutput = j*16 + '0';
+    }
+    else if (flag>0) {
+        *IdxChildoutput = -2 + '0';
+    }
+    else if (output==0){
+
+        *IdxChildoutput = -1 + '0';
+    }
+}
+
+
+void isStringSame (char *stringInput1, char *stringInput2, int *output) //output bernilai 0/1 0 jika beda 1 jika sama
+{
+    int it =0;
+    int bol = 1; //true
+    int ls1, ls2;
+    lengthString(stringInput1,&ls1);
+    lengthString(stringInput2,&ls2);
+    if (ls1==ls2) {
+        while (bol ==1 && (stringInput1[it]!=0x00 )) {
+            if (stringInput1[it] == stringInput2[it]) {
+                it++;
+                bol = bol*1;
+            }
+            else {
+                bol= bol*0;
+                break;
+            }
+        }
+        if (bol==0) {
+            *output = 0;
+        }
+        else {
+            if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
+                *output = 0;
+            }
+            else {
+                *output =1;
+            }
+        }
+    }
+    else {
+        *output = 0;
+    }  
+}
+
+int IsStringSameBol(char *stringInput1, char *stringInput2) //output bernilai 0/1 0 jika beda 1 jika sama
+{
+   int it =0;
+    int bol = 1; //true
+    int ls1, ls2;
+    lengthString(stringInput1,&ls1);
+    lengthString(stringInput2,&ls2);
+    if (ls1==ls2) {
+        while (bol ==1 && (stringInput1[it]!=0x00 )) {
+            if (stringInput1[it] == stringInput2[it]) {
+                it++;
+                bol = bol*1;
+            }
+            else {
+                bol= bol*0;
+                break;
+            }
+        }
+        if (bol==0) {
+             return 0;
+        }
+        else {
+            if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
+                 return 0;
+            }
+            else {
+                 return 1;
+            }
+        }
+    }
+    else {
+        return  0;
+    }  
+}
+
 
 #endif

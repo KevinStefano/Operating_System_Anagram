@@ -3,7 +3,9 @@
 #ifndef __LIBFOLDERIO_H
 #define __LIBFOLDERIO_H
 
-void createFolder();
+#include "libFileIO.h"
+
+void createFolder(char* dir, char matriks[64][14], int* success, char parentIndex);
 void deleteFolder();
 void listContent();
 
@@ -11,12 +13,44 @@ void putStr(char curdir, char argc, char argv[64][128]);
 void getCurdir(char *curdir);
 void getArgc(char *argc);
 void getArgv(char idx, char *argv); 
+void clear(char *buffer, int length);
 
 
+void createFolder(char* dir, char matriks[64][14], int* success, char parentIndex) {
+    //Buat MKDIR 
+    //Punya Sam belom di revisi
+    int  i, j, k, foldername_length;
+    char idx;
+    *success = 0;
+    for(k = 1; matriks[k][0] != 0x00; k++) {
+        lengthString(matriks[k],&foldername_length);
+        searchIndexbyFileName(dir,matriks[k],parentIndex,&idx);
+        if(IsStringSameBol(&idx,-1 +'0') || IsStringSameBol(idx,-2 + '0')) {
+            for(i = 0; i < 64; i++) {
+                if(dir[i*16+2] == 0x00) break;
+            }
+            if(i == 64) {
+                *success = -2;
+                return;
+            }
 
-void createFolder() {
+            dir[i*16] = parentIndex;
+            dir[i*16+1] = 0xFF;
 
+            for(j = 0; j < 14; j++) {
+                dir[i*16+2+j] = 0x00;
+            }
+            for(j = 0; j < foldername_length; j++) {
+                dir[i*16+2+j] = matriks[k][j];
+            }
+            *success = 1;
+            return;
+        }
+        *success = -1;
+        return;              
+    } 
 }
+
 void deleteFolder() {
 
 }
@@ -56,25 +90,25 @@ void putStr(char curdir, char argc, char argv[64][128]){
         }
         idx1++;
     }
-    writeSector(str, 512);
+    interrupt(0x21, 0x03, str, 512,0);
 }
 
 void getCurdir(char *curdir) {
     char str[512];
-    readSector(str,512);
+    interrupt(0x21, 0x02, str, 512,0);
     *curdir = str[0];
 }
 
 void getArgc(char *argc) {
     char str[512];
-    readSector(str,512);
+    interrupt(0x21, 0x02, str, 512,0);
     *argc = str[1];
 }
 void getArgv(char idx, char *argv) {
     int idx1 = 2;
     int idx3 = 0;
     char str[512];
-    readSector(str, 512);
+    interrupt(0x21, 0x02, str, 512,0);
 
     idx1 = idx;
     //Mengisi ke dalam argv jika sudah ditemukan idexnya di str
@@ -88,5 +122,12 @@ void getArgv(char idx, char *argv) {
         idx1++;
     } 
 }   
+
+void clear(char *buffer, int length) {
+    int i;
+    for(i = 0; i < length; i++) {
+        buffer[i] = 0x0;
+    } 
+}
 
 #endif
