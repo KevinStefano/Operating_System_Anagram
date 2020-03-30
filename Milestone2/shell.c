@@ -53,9 +53,6 @@ int main() {
         int matriks_length;
         int matriks_path_length;
 
-  
-      
-
         interrupt(0x21,0x02,dirsOrFile,0x101,0);
         interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
         interrupt(0x21, 0x0, "Anagram/",0,0);

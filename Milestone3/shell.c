@@ -1,6 +1,6 @@
 #include "libFileIO.h"
-#include "libMatematika.h"
 #include "libFolderIO.h"
+#include "libMatematika.h"
 
 int command(char* input);
 void enter();
@@ -405,6 +405,6 @@ void printString(char *string){
     }
 }
 
-#include "libFolderIO_imp.h"
 #include "libFileIO_imp.h"
+#include "libFolderIO_imp.h"
 #include "libMatematika_imp.h"

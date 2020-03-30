@@ -7,141 +7,11 @@
 
 void readFile(char *buffer, char *path, int *result, char parentIndex)
 {
-    char dirsOrFile[1024]; //16*64
-    char sectors[512]; //16*32
-    int idx; int success; int i=0;
-    // read sector
-    readSector(dirsOrFile,0x101);
-    readSector(dirsOrFile+512,0x102);
-    readSector(sectors,0x103);
-
-    //PROSES PENGECHECKAN dir folder DAN file
-    searchFile(dirsOrFile,path,&idx,&success,parentIndex);
-    if (success==0) {
-        *result = -1; //File tidak ditemukan (readFile)
-    }
-    else {
-        *result = 0; //Berhasil;
-        //Proses membaca isi sector
-        while (i<16) {
-            if (sectors[(idx*16)+i]==0x00) {
-                break; //Proses membca selesai
-            }
-            else {
-                //Pembacaan dilakukan ke buffer yang terletak pada buffer +(i*512)
-                //Yang dibaca adalah sector idx*16 == tabel sector
-                // yang ditambah i untuk membaca character 0..15
-                readSector(buffer+i*512,sectors[idx*16+i]);
-            }
-            i++;
-        }
-    } 
+    interrupt(0x21, parentIndex << 8 || 0x04, *buffer, *path, *result);
 }
 
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
-    char file1[1024], map[512], sector_[512];
-    char filename[14];
-    char directory_path[512];
-    char sub_buffer[512];
-    char idx_parent, dir_valid, idx_file, file_exist, idx_sector;
-    int i, j, k, l, count_neededsector, file_index;
-    int available_entries;
-    int count;
-    int m =0;
-    int count_emptymap = 0;
-    int buffer_length = 0;
-    int filename_length = 0;
-
-    readSector(map,0x100);
-    readSector(file1,0x101);
-    readSector(file1+512,0x102);
-    readSector(sector_,0x103);
-
-    //Cek jumlah map kosong
-    for(i = 0; i < 512; i++) {
-        if(map[i] == 0x00) {
-            count_emptymap++;
-        }
-    }
-
-    lengthString(buffer, &buffer_length);
-    count_neededsector = div(buffer_length,512);
-    if(count_neededsector <= 0) {
-        count_neededsector = 1;
-    }
-
-    if(count_emptymap >= count_neededsector) {
-        available_entries = 0;
-        //Cek dari sector file
-        for(j = 0; j < 1024; j += 16) {
-            if(file1[j] == 0x00 && file1[j+1] == 0x00 && file1[j+2] == 0x00) {
-                available_entries = 1;
-                file_index = div(j,16);
-                break;
-            }
-        }
-        if(available_entries) {
-            takeFileNameFromPath(path,directory_path,filename);
-            searchDirectoryParent(file1,directory_path,&idx_parent,&dir_valid,parentIndex);
-            if(dir_valid) {
-                searchFile(file1,path,&idx_file,&file_exist,parentIndex);
-                if(!file_exist) {
-                    //isi P dengan index dirParent
-                    file1[file_index*16] = idx_parent;
-                    lengthString(filename,&filename_length);
-                    //Cari index sector
-                    for(idx_sector = 0; idx_sector < 32; idx_sector++) {
-                        if(sector_[idx_sector*16] == 0x00) {
-                            break;
-                        }
-                    }
-                    file1[file_index*16+1] = idx_sector;
-                    //Isi nama file di files dengan 00 dulu
-                    for(k = 0; k < 14; k++) {
-                        file1[file_index*16+2+k] = 0x00;
-                    }
-                    for(k = 0; k < filename_length; k++) {
-                        file1[file_index*16+2+k] = filename[k];
-                    }
-                    //Cari sector kosong
-                    for(l = 0; l < count_neededsector; l++) {
-                        while(map[m] != 0x00 && m < 256) {
-                            m++;
-                        }
-                        //Tandai di map
-                        map[m] == 0xFF;
-                        //Isi di sector
-                        sector_[idx_sector*16+l] = m;
-                        //Pindahkan ke sub_buffer sebesar 512
-                        clear(sub_buffer,512);
-                        copyString(buffer, sub_buffer, l*512, 512);
-                        //Menuliskan ke sector m
-                        writeSector(sub_buffer, m);
-                    }
-
-                    writeSector(map,0x100);
-                    writeSector(file1,0x101);
-                    writeSector(file1+512,0x102);
-                    writeSector(sector_,0x103);
-                    *sectors = 1;
-                }
-                else {
-                    *sectors = -1; // File sudah ada
-                }
-            }
-            else {
-                *sectors = -4; // Folder tidak valid
-            }
-            
-        }
-        else {
-            *sectors = -2; // Tidak cukup entri di files
-        }
-    }
-    else {
-        *sectors = -3; // Tidak cukup sektor kosong
-    }
-
+   interrupt(0x21, parentIndex << 8 || 0x04, *buffer, *path, *sectors);
 }
 
 void deleteFile(char *path, int *result, char parentIndex) {
@@ -160,35 +30,35 @@ void deleteFile(char *path, int *result, char parentIndex) {
 	interrupt(0x21, 0x02, sectors, 0x103, 0);
     
     searchFile(dirsOrFile, path, &idx, &success, parentIndex);
-    //if (success) {
-        /*
+	interrupt(0x21, 0x20, idx, 0, 0);
+    if (success) {
+        
         dirsOrFile[idx*15]= 0x00;
         dirsOrFile[(idx*15)+1]= 0x00;
         dirsOrFile[(idx*15)+2]= 0x00;
 
         while (i<16) {
             //Hapus map dan sectors
-            maps[sectors[idx*16 + i]]==0x00;
-            sectors[idx*16+i]==0x00;
+            maps[sectors[idx*16 + i]]=0x00;
+            sectors[idx*16+i]=0x00;
             i++;
             if (sectors[idx*16+i]==0x00 || i>=16) {
                 break;
             }
         }
+        
         writeSector(maps,0x100);
         writeSector(dirsOrFile,0x101);
         writeSector(dirsOrFile+512,0x102);
         writeSector(sectors,0x103);
         //Maka berhasil
-        */
-        //*result = 0;
-    //}
-    /*else {
+        
+        *result = 0;
+    }
+    else {
         
         *result = -1; //Tidak ditemukan
-    }*/
-    
-    
+    }
 }
 
 void readSector(char *buffer, int sector) 
