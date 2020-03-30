@@ -558,7 +558,7 @@ void printString(char *string){
 
 void printInt(int i) {
     char integer[11];
-    int idx = 9;
+    int idx = 10;
     integer[0] = '0';
     integer[1] = '0';
     integer[2] = '0';
@@ -567,9 +567,10 @@ void printInt(int i) {
     integer[5] = '0';
     integer[6] = '0';
     integer[7] = '0';
+    integer[8] = '0';
     integer[9] = '0';
     integer[10] = 0x00;
-    while (i >0 && idx>-1) {
+    while (i != 0 && idx>-1) {
         integer[idx] = '0' + mod(i,10);
         idx--;
         i = div(1,10);

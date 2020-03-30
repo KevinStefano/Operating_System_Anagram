@@ -8,14 +8,12 @@ void listAll(char* dir, char matriks[64][14], char parentIndex);
 void checkmatriks(char matriks[64][14], char *curdir, char* dirs, char *succes);
 void printString(char *string);
 void printMatrikstoPath(char matriks[64][14]);
-void pushToMatriks(char matriks[64][14], char *stringInput);
-void popMatriks(char matriks[64][14]);
 
 
 
 int main() {
           
-    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.0 ",0,0);
+    interrupt(0x21, 0x0, "Welcome to ANAGRAMA SHELL 1.0 ",0,0);
     enter();
 
     while (1) {
@@ -24,13 +22,11 @@ int main() {
         int type_masukkan;
         int sumKataSetelahSpasi;
         int kataSetelahSpasi;
-        char matriks[64][14];
         char matrikspath[64][14];
         char dirsOrFile[1024];
         char path[14];
         char fileName[14];
         int output;
-        char curdir = 0xFF;
         char curdirtemporal= 0xFF;
         int i=0;
         int j=0;
@@ -40,6 +36,9 @@ int main() {
         int success = 0;
         int matriks_length;
         int matriks_path_length;
+        char curdir = 0xFF;
+        char argc;
+        char argv[64][14];
 
         interrupt(0x21,0x02,dirsOrFile,0x101,0);
         interrupt(0x21,0x02,dirsOrFile+512,0x102,0);
@@ -50,15 +49,19 @@ int main() {
 
         type_masukkan = command(masukkan);
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
-        makePathtoMatriks(masukkan, 0x20, matriks);
+        makePathtoMatriks(masukkan, 0x20, argv);
 
         //Ambil element kedua matriks
         clear(path,14);
         while(j<14) {
-            path[j] = matriks[1][j];
+            path[j] = argv[1][j];
             j++;
         }
-            
+
+        //Inisialisasi arc, curdir
+        interrupt(0x21, 0x08 &curdir, 0, 0);
+        argc = sumKataSetelahSpasi;
+        
         if (type_masukkan == 111) { //cd
             if (sumKataSetelahSpasi>=2) {
                 interrupt(0x21, 0x00, "Masukkan salah", 0,0);
@@ -69,33 +72,29 @@ int main() {
             }
             else {
                 isStringSame(path, "..",&out);
-                if (out==1) {
+                if (argc ==1 && isStringSame(argv[1],"..")) {
                     if (curdir == 0xFF) {
                         interrupt(0x21, 0x00, "Stay on level",0,0);
                         enter();
                     }
                     else {
-                        clear(fileName,14);
-                        searchFileNameParentbyIndexFromChild(dirsOrFile,&curdirtemporal,fileName);
-                        if (curdirtemporal==0xFF) {
-                            interrupt(0x21, 0x00, "Stay on level",0,0);
-                            enter();
-                        }
-                        else {
-                            curdir = curdirtemporal;
-                            interrupt(0x21, 0x00, "Back 1 level to ",0,0);
-                            interrupt(0x21, 0x00, fileName, 0,0);
-                            enter();
-                            
-                        }     
+                        interrupt(0x21, 0x00, "Back 1 level ",0,0);
+                        curdir = dirsOrFile[curdir * 16];
+                        interrupt(0x21, 0x20, curdir, 0, 0);
+                        enter();
+                        }  
                     }
-                }
+                
                 else {
                     //KASUS cd a/b/c/d
                         //Pbuat path jadi split
 
+                        //if (argc ==0) {
+                         //   curdir = 0xFF;
+                            //interrupt(0x21, 0x07, 0xFF, 0, 0);
+                        //}
                         makePathtoMatriks(path,'/',matrikspath);
-                        checkmatriks(matrikspath,&curdirtemporal,dirsOrFile,&out);
+                        //checkmatriks(matrikspath,&curdirtemporal,dirsOrFile,&out);
                         if (out==0) {
                             interrupt(0x21, 0x00, "Gagal... ",0,0);
                             enter();
@@ -105,14 +104,13 @@ int main() {
                             clear(fileName,14);
                             interrupt(0x21, 0x00, "Go to ",0,0);
                             searchFileNameParentbyIndexFromChild(dirsOrFile,&curdir,fileName);
-                            interrupt(0x21, 0x00,fileName,0,0);
                             enter();
                         }
                 }
             }
         }
         else if(type_masukkan == 112) { // ls
-            listAll(dirsOrFile,matriks,curdir);
+            listAll(dirsOrFile,argv,curdir);
         }
         else if (type_masukkan == 113) {
             clear(fileName,14);
@@ -138,12 +136,17 @@ int main() {
                 }
             }
         }
+        else if(type_masukkan == 114) { // ls
+            //interrupt(0x21, 0x20, curdir, argc, argv + 1);
+            //interrupt(0x21, curdir << 8 | 0x6, "echo", 0x2000, &out); //invoke executeProgram()
+        
+        }
         else if(type_masukkan == 115) { // mkdir
-            if(matriks[1][0] == 0x00) {
+            if(argv[1][0] == 0x00) {
                 interrupt(0x21,0x00,"Nama folder tidak ada\n\r",0,0);
             }
             else {
-                createFolder(dirsOrFile,matriks,&success,curdir);
+                createFolder(dirsOrFile,&success,curdir);
                 if(success == -2) {
                     interrupt(0x21,0x00,"Entry tidak cukup\n\r",0,0);
                 }
@@ -216,31 +219,6 @@ void printMatrikstoPath(char matriks[64][14]) {
             printString("/");
         }
         i++;
-    }
-}
-
-void pushToMatriks(char matriks[64][14], char *stringInput) {
-    int i = 0;
-    int j=0;
-    while (matriks[i]!=0x00 && i<64) {
-        i++;
-    }
-    
-    //masukkan
-    while(stringInput[j]!=0x00) {
-        matriks[i][j] ==stringInput[j];
-        j++;
-    }
-}
-
-
-void popMatriks(char matriks[64][14]) {
-    int i=0;
-    if (matriks[0] != 0x00) {
-        while (matriks[i]!= 0x00) {
-            i++;
-        }
-        clear(matriks[i],14);
     }
 }
 
