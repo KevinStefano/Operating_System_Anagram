@@ -14,7 +14,8 @@ void enter();
 void printInt(int i);
 
 void deleteFile(char *path, int *result, char parentIndex);
-void createFolder(char* dir, int* success, char parentIndex);
+void createFolder(char* path_, int* success, char parentIndex);
+void listContent(char currDir);
 void deleteFolder(char *path, int *success, char parentIndex);
 
 
@@ -105,7 +106,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
 	  case 0x23:
 		 deleteFolder(BX, CX, AH);
 		 break;
-		
+      case 0x24:
+         listContent(BX);
+         break;
       default:
          printString("Invalid interrupt");
    }
@@ -644,42 +647,75 @@ void getArgv(char idx, char *argv) {
 }   
 
 
-void createFolder(char* dir, int* success, char parentIndex) {
-    //Buat MKDIR 
-    //Punya Sam belom di revisi
-    /*
-    int  i, j, k, foldername_length;
-    char idx;
-    *success = 0;
-    for(k = 1; matriks[k][0] != 0x00; k++) {
-        lengthString(matriks[k],&foldername_length);
-        searchIndexbyFileName(dir,matriks[k],parentIndex,&idx);
-        if(IsStringSameBol(&idx,-1 +'0') || IsStringSameBol(idx,-2 + '0')) {
-            for(i = 0; i < 64; i++) {
-                if(dir[i*16+2] == 0x00) break;
-            }
-            if(i == 64) {
-                *success = -2;
-                return;
-            }
-
-            dir[i*16] = parentIndex;
-            dir[i*16+1] = 0xFF;
-
-            for(j = 0; j < 14; j++) {
-                dir[i*16+2+j] = 0x00;
-            }
-            for(j = 0; j < foldername_length; j++) {
-                dir[i*16+2+j] = matriks[k][j];
-            }
-            *success = 1;
-            return;
-        }
-        *success = -1;
+void createFolder(char* path_, int* success, char parentIndex) {
+    int dir_idx, tmp, prntIdx, fldrNameLength, i;
+    char path[64*16];
+    char folderName[14];
+    char dirs[64*16];
+    char succ;
+    
+    interrupt(0x21,0x02,dirs,0x101,0);
+    interrupt(0x21,0x02,dirs+512,0x102,0);
+    dir_idx = 0;
+    //Mencari dir kosong
+    while(dir_idx < 64 && dirs[dir_idx*16+2] != 0x00) {
+        dir_idx++;
+    }
+    if(dir_idx == 64) {
+        *success = -2; // Tidak cukup entri di files
         return;
-                      
-    } 
-    */
+    }
+
+    // Mereset path dan folderName yang nanti akan diisi
+    clear(path,64*16);
+    clear(folderName, 14);
+    takeFileNameFromPath(path_,path,folderName);
+    // Validasi apakah parent directory-nya ada
+    searchDirectoryParent(dirs,path,&prntIdx,&succ,parentIndex);
+    if(succ == 1) {
+        // Validasi apakah directory sudah ada
+        searchDirectoryParent(dirs,path_,&tmp,&succ,parentIndex);
+        if(succ == 0) {
+            dirs[dir_idx*16] = prntIdx;
+            dirs[dir_idx*16+1] = 0xFF;
+            lengthString(folderName,&fldrNameLength);
+            for(i = 0; i < 14; i++) {
+                dirs[dir_idx*16+2+i] = 0x00;
+                if(i < fldrNameLength) {
+                    dirs[dir_idx*16+2+i] = folderName[i];
+                }
+            }
+            interrupt(0x21,0x03,dirs,0x101,0);
+            interrupt(0x21,0x03,dirs+512,0x102,0);
+            *success = 0; // Berhasil berhasil hore lolisimo
+        }
+        else {
+            *success = -1; // Folder sudah ada
+        }
+    }
+    else {
+        *success = -4; // Folder tidak valid
+    }
+}
+
+void listContent(char currDir) {
+    char dirs[64*16];
+    int i, j;
+    char fileName[14];
+
+    interrupt(0x21,0x02,dirs,0x101,0);
+    interrupt(0x21,0x02,dirs+512,0x102,0);
+
+    for(i = 0; i < 64; i++) {
+        if(dirs[i*16] == currDir && dirs[i*16+2] != 0x00) {
+            clear(fileName, 14);
+            for(j = 0; j < 14; j++) {
+                fileName[j] = dirs[i*16+2+j];
+            }
+            interrupt(0x21,0x00,"   ",0,0);
+            interrupt(0x21,0x00,fileName,0,0);
+        }
+    }
 }
 
 void deleteFile(char *path, int *result, char parentIndex) {
