@@ -3,17 +3,16 @@
 
 #include "libFileIO_imp.h"
 
-void createFolder(char* dir, int* success, char parentIndex) {
-    interrupt(0x21, parentIndex << 8 || 0x21, *dir, *success, 0);
+void createFolder(char* path, int* success, char parentIndex) {
+    interrupt(0x21, parentIndex << 8 || 0x21, *path, *success, 0);
 }
 
 void deleteFolder(char *path, int *success, char parentIndex){
     interrupt(0x21, parentIndex << 8 || 0x23, *path, *success, 0);
 }
-void listContent() {
-
+void listContent(char currDir) {
+    interrupt(0x21, 0x24, currDir, 0, 0);
 }
-
 
 void putStr(char curdir, char argc, char argv[64][128]){
     interrupt(0x21,0x07,curdir, argc, argv);

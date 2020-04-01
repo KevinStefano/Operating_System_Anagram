@@ -13,7 +13,7 @@ void printMatrikstoPath(char matriks[64][14]);
 
 int main() {
           
-    interrupt(0x21, 0x0, "Welcome to ANAGRAMA SHELL 1.0 ",0,0);
+    interrupt(0x21, 0x0, "Welcome to ANAGRAMS SHELL 1.0 ",0,0);
     enter();
 
     while (1) {
@@ -22,20 +22,16 @@ int main() {
         int type_masukkan;
         int sumKataSetelahSpasi;
         int kataSetelahSpasi;
-        char matrikspath[64][14];
         char dirsOrFile[1024];
         char path[14];
         char fileName[14];
         int output;
-        char curdirtemporal= 0xFF;
         int i=0;
         int j=0;
         int l;
         int idxoutput;
         int out;
         int success = 0;
-        int matriks_length;
-        int matriks_path_length;
         char curdir = 0xFF;
         char argc;
         char argv[64][14];
@@ -68,11 +64,12 @@ int main() {
                 enter();
             }
             else if (sumKataSetelahSpasi==0) {
-                //Do nothing :(
+                curdir = 0xFF;
+                putStr(curdir,0,0);
             }
             else {
                 isStringSame(path, "..",&out);
-                if (argc ==1 && isStringSame(argv[1],"..")) {
+                if (argc ==1 && IsStringSameBol(argv[1],"..")) {
                     if (curdir == 0xFF) {
                         interrupt(0x21, 0x00, "Stay on level",0,0);
                         enter();
@@ -80,37 +77,33 @@ int main() {
                     else {
                         interrupt(0x21, 0x00, "Back 1 level ",0,0);
                         curdir = dirsOrFile[curdir * 16];
-                        interrupt(0x21, 0x20, curdir, 0, 0);
+                        putStr(curdir, 0, 0);
                         enter();
                         }  
                     }
                 
                 else {
                     //KASUS cd a/b/c/d
-                        //Pbuat path jadi split
-
-                        //if (argc ==0) {
-                         //   curdir = 0xFF;
-                            //interrupt(0x21, 0x07, 0xFF, 0, 0);
-                        //}
-                        makePathtoMatriks(path,'/',matrikspath);
-                        //checkmatriks(matrikspath,&curdirtemporal,dirsOrFile,&out);
+                        searchDirectoryParent(dirsOrFile,argv[1], &idxoutput, &out, curdir);
                         if (out==0) {
                             interrupt(0x21, 0x00, "Gagal... ",0,0);
                             enter();
                         }
                         else {
-                            curdir = curdirtemporal;
-                            clear(fileName,14);
                             interrupt(0x21, 0x00, "Go to ",0,0);
-                            searchFileNameParentbyIndexFromChild(dirsOrFile,&curdir,fileName);
+                            printString(argv[1]);
                             enter();
+                            curdir = idxoutput;
+                            putStr(curdir,0,0);
                         }
                 }
             }
         }
+        
         else if(type_masukkan == 112) { // ls
-            listAll(dirsOrFile,argv,curdir);
+
+            putStr(curdir, argc, argv + 1);
+            listContent(curdir);
         }
         else if (type_masukkan == 113) {
             clear(fileName,14);
@@ -131,15 +124,10 @@ int main() {
                     enter();
                 }
                 else {
-                    printString("Gagal");
+                    printString("Gagal execute");
                     enter();
                 }
             }
-        }
-        else if(type_masukkan == 114) { // ls
-            //interrupt(0x21, 0x20, curdir, argc, argv + 1);
-            //interrupt(0x21, curdir << 8 | 0x6, "echo", 0x2000, &out); //invoke executeProgram()
-        
         }
         else if(type_masukkan == 115) { // mkdir
             if(argv[1][0] == 0x00) {
@@ -152,6 +140,10 @@ int main() {
                 }
                 else if(success == -1) {
                     interrupt(0x21,0x00,"Folder sudah ada\n\r", 0,0);
+                }
+                else {
+                    printString("Berhasil");
+                    enter();
                 }
             }
         }
