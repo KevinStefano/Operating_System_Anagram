@@ -15,6 +15,10 @@ void printInt(int i);
 
 void deleteFile(char *path, int *result, char parentIndex);
 void createFolder(char* path_, int* success, char parentIndex);
+<<<<<<< HEAD
+=======
+void listContent(char currDir);
+>>>>>>> f53fbdfaf9a3aba0fee61c1ab4e70d5100eaefef
 void deleteFolder(char *path, int *success, char parentIndex);
 void listContent(char currDir);
 
