@@ -13,6 +13,7 @@ int main () {
     getArgc(&argc);
     getArgv(0,argv[0]);
 
+    printString("Proses penambahan mkdir di mkdir.c\n");
     createFolder(argv[0],&success, curdir);
     if(success == 0) {
         printString("Berhasil cuyyy :)");
@@ -32,5 +33,5 @@ int main () {
     interrupt(0x21, curdir << 8 | 0x6, "shell", 0x2000, &berhasil);
 }
 
-//#include "libFolderIO_imp.h"
-//#include "libFileIO_imp.h"
+#include "libFolderIO_imp.h"
+#include "libFileIO_imp.h"
