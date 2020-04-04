@@ -43,7 +43,7 @@ int mod(int bil1, int bil2);
 int div(int bil1, int bil2);
 int main() {
           
-    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.5 ",0,0);
+    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.50 ",0,0);
     enter();
 
     while (1) {
@@ -191,6 +191,23 @@ int main() {
                 
             }
     }
+        else if(type_masukkan == 117) { // cp
+            if(argv[1][0] == 0x00 || argv[2][0] == 0x00) {
+                interrupt(0x21,0x00,"Argumen kurang untuk copy file\n\r",0,0);
+            }
+            else {
+                interrupt(0x21,curdir << 8 | 0x25, argv+1, argv+2, &out);
+            }
+        }
+        else if(type_masukkan == 118) { //mv
+            if(argv[1][0] == 0x00 || argv[2][0] == 0x00) {
+                interrupt(0x21,0x00,"Argumen kurang untuk move file\n\r",0,0);
+            }
+            else {
+                interrupt(0x21,curdir << 8 | 0x26, argv+1, argv+2, &out);
+            }
+        }
+
 }
 }
 
@@ -249,6 +266,17 @@ int command(char* input) {
         if(bol==1) {
             bol = 0;
             return 116;
+        }
+
+        isStringSame(masukkan, "cp", &bol);
+        if(bol == 1) {
+            bol = 0;
+            return 117;
+        }
+        isStringSame(masukkan, "mv", &bol);
+        if(bol == 1) {
+            bol = 0;
+            return 118;
         }
 }
 
