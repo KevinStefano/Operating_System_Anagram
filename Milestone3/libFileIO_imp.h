@@ -3,6 +3,13 @@
 #ifndef __LIBTEST_H
 #define __LIBTEST_H
 
+void copyFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
+
+}
+
+void moveFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
+
+}
 
 void readFile(char *buffer, char *path, int *result, char parentIndex)
 {

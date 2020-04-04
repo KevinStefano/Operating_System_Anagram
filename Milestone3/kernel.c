@@ -17,6 +17,8 @@ void deleteFile(char *path, int *result, char parentIndex);
 void createFolder(char* path_, int* success, char parentIndex);
 void deleteFolder(char *path, int *success, char parentIndex);
 void listContent(char currDir);
+void copyFile(char* pathasal, char* pathtujuan, int* result, char parentIndex);
+void moveFile(char* pathasal, char* pathtujuan, int* result, char parentIndex);
 
 void lengthString(char *stringInput, int *length_String);
 void countChar(char *stringInput, char c, int *count_Char);
@@ -27,6 +29,8 @@ void makePathtoMatriks (char *path, char c, char matriks[64][14]);
 void isSameSector(char *sector, char start, char checker[14], char *index, char *output);
 void searchDirectoryParent(char *dirParent, char *pathParent, char *index, char *output, char idxParent);
 void searchFile(char *dirsOrFile, char *path, char *index, char *success, char parentIndex);
+int IsStringSameBol(char *stringInput1, char *stringInput2) ;
+void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* IdxChildoutput);
 
 void putStr(char curdir, char argc, char argv[64][128]);
 void getCurdir(char *curdir);
@@ -45,7 +49,7 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    interrupt(0x21,0x00,"Masukkan pilihan kamu ...\n\r",0,0);
+    interrupt(0x21,0x00,"Masukkan pilihan kamu ....\n\r",0,0);
     interrupt(0x21,0x00,"1.Shell\n\r",0,0);
     interrupt(0x21,0x01,&input,0,0);
     if(input[0] == 0x31) {
@@ -112,8 +116,13 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     case 0x25:
 		 cat(BX, CX, AH);
 		 break;
-		
-      default:
+	case 0x26:
+         copyFile(BX,CX,DX,AH);
+         break;
+    case 0x27:
+         moveFile(BX,CX,DX,AH);
+         break;
+    default:
          printString("Invalid interrupt");
    }
 }
@@ -860,4 +869,138 @@ void cat(char *path, int *success, char parentIndex) {
     clear(file, 512);
     interrupt(0x21, parentIndex << 8 | 0x04, file, path, &berhasil);
     interrupt(0x21,0x00,file,0,0); 
+}
+
+void copyFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
+    // Hanya menerima 2 parameter
+    char curdir;
+    int i, tmp, succ;
+    char dirs[64*16];
+    char dirPath[512], dirPathAsal[512];
+    char fileName[14], fileNameAsal[14];
+    char childIdxAsal, childIdxTujuan;
+    char buffer[8195];
+    char idxParent;
+
+    i = 1;
+    readSector(dirs,0x101);
+    readSector(dirs+512,0x102);
+    
+    
+    //untuk file asal
+    clear(dirPathAsal,512);
+    clear(fileNameAsal,14);
+    takeFileNameFromPath(pathasal,dirPathAsal,fileNameAsal);
+    searchIndexbyFileName(dirs,fileNameAsal,parentIndex,&childIdxAsal);
+    if(childIdxAsal == -1) {
+        *result = -1; // File asal tidak ditemukan
+        return;
+    }
+    
+    clear(buffer,8195);
+    readFile(buffer,pathasal,&tmp,parentIndex);
+    //untuk file tujuan
+    clear(dirPath,512);
+    clear(fileName,14);
+    takeFileNameFromPath(pathtujuan,dirPath,fileName);
+    searchDirectoryParent(dirs, dirPath,&idxParent,&tmp,parentIndex);
+    searchIndexbyFileName(dirs,fileName,idxParent,&childIdxTujuan);
+    if(childIdxTujuan != -1) {
+        if(dirs[childIdxTujuan*16+1] == 0xFF) {// berarti ini folder 
+            writeFile(buffer,fileNameAsal,&succ,childIdxTujuan);
+            *result = succ;
+        }
+        else {
+            *result = -1;
+        }
+    }
+    else {
+        writeFile(buffer,pathtujuan,&succ,curdir);
+        *result = succ;
+    }
+    
+}
+
+void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* IdxChildoutput) {
+    //Output
+    //Jika didapat filename di dir, idx = indexnya
+    //jika tidak didapat di dir, idx =-1
+    //Jika 
+    int out;
+    int l=0;
+    int j=0;
+    int output=0;
+    int flag=0;
+    char fileNameOutput[14];
+
+
+    while (j<64) {
+        clear(fileNameOutput,14);
+        l=0;
+        while (l<14) {
+            fileNameOutput[l] = dir[j*16+2+l];
+            l++;
+        }
+        isStringSame(stringInput,fileNameOutput,&output);
+        if (output==1) {
+            if (IsStringSameBol(dir[j*16],idxParent)) {
+                break;
+            }
+            else {
+                flag++;
+            }
+        }
+        j++;
+    }
+    isStringSame(dir[j*16],idxParent,&out);
+    if (output==1 && out==1) {
+        *IdxChildoutput = j*16 + '0';
+    }
+    else if (flag>0) {
+        *IdxChildoutput = -2 + '0';
+    }
+    else if (output==0){
+
+        *IdxChildoutput = -1 + '0';
+    }
+}
+
+int IsStringSameBol(char *stringInput1, char *stringInput2) //output bernilai 0/1 0 jika beda 1 jika sama
+{
+   int it =0;
+    int bol = 1; //true
+    int ls1, ls2;
+    lengthString(stringInput1,&ls1);
+    lengthString(stringInput2,&ls2);
+    if (ls1==ls2) {
+        while (bol ==1 && (stringInput1[it]!=0x00 )) {
+            if (stringInput1[it] == stringInput2[it]) {
+                it++;
+                bol = bol*1;
+            }
+            else {
+                bol= bol*0;
+                break;
+            }
+        }
+        if (bol==0) {
+             return 0;
+        }
+        else {
+            if (stringInput1[it]!=0x00 || stringInput2[it]!=0x00) {
+                 return 0;
+            }
+            else {
+                 return 1;
+            }
+        }
+    }
+    else {
+        return  0;
+    }  
+}
+
+void moveFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
+    copyFile(pathasal,pathtujuan,result,parentIndex);
+    deleteFile(pathasal,result,parentIndex);
 }
