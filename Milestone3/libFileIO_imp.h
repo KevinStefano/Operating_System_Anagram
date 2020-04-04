@@ -3,12 +3,12 @@
 #ifndef __LIBTEST_H
 #define __LIBTEST_H
 
-void copyFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
-
+void moveFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
+    interrupt(0x21,parentIndex << 8 | 0x26, *pathtujuan+1, *pathtujuan+2, &result);
 }
 
-void moveFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
-
+void copyFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
+    interrupt(0x21,parentIndex << 8 | 0x25, *pathtujuan+1, *pathtujuan+2, &result);
 }
 
 void readFile(char *buffer, char *path, int *result, char parentIndex)

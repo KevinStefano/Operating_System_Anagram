@@ -43,7 +43,7 @@ int mod(int bil1, int bil2);
 int div(int bil1, int bil2);
 int main() {
           
-    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.50 ",0,0);
+    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.5 ",0,0);
     enter();
 
     while (1) {
