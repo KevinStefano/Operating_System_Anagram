@@ -3,15 +3,15 @@
 
 
 void createFolder(char* path, int* success, char parentIndex) {
-    interrupt(0x21, parentIndex << 8 || 0x21, *path, *success, 0);
+    interrupt(0x21, parentIndex << 8 | 0x21, *path, *success, 0);
 }
 
 void deleteFolder(char *path, int *success, char parentIndex){
-    interrupt(0x21, parentIndex << 8 || 0x23, *path, *success, 0);
+    interrupt(0x21, parentIndex << 8 | 0x23, *path, *success, 0);
 }
 
 void cat(char *path, int *success, char parentIndex){
-    interrupt(0x21, parentIndex << 8 || 0x25, *path, *success, 0);
+    interrupt(0x21, parentIndex << 8 | 0x25, *path, *success, 0);
 }
 void listContent(char currDir) {
     interrupt(0x21, 0x24, currDir, 0, 0);
