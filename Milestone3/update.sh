@@ -14,4 +14,13 @@ bcc -ansi -c -o shell.o shell.c
 ld86 -o shell -d shell.o lib_asm.o
 ./loadFile shell
 
+bcc -ansi -c -o ls.o ls.c
+ld86 -o ls -d ls.o lib_asm.o
+./loadFile ls
+
+bcc -ansi -c -o mkdir.o mkdir.c
+ld86 -o mkdir -d mkdir.o lib_asm.o
+./loadFile mkdir
+
+
 echo c | bochs -f if2230.config

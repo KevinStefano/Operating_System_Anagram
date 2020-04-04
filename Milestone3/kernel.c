@@ -15,10 +15,6 @@ void printInt(int i);
 
 void deleteFile(char *path, int *result, char parentIndex);
 void createFolder(char* path_, int* success, char parentIndex);
-<<<<<<< HEAD
-=======
-void listContent(char currDir);
->>>>>>> f53fbdfaf9a3aba0fee61c1ab4e70d5100eaefef
 void deleteFolder(char *path, int *success, char parentIndex);
 void listContent(char currDir);
 
@@ -48,7 +44,7 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    interrupt(0x21,0x00,"Masukkann pilihan kamu\n\r",0,0);
+    interrupt(0x21,0x00,"Masukkannnn pilihan kamu\n\r",0,0);
     interrupt(0x21,0x00,"1.Shell\n\r",0,0);
     interrupt(0x21,0x01,&input,0,0);
     if(input[0] == 0x31) {
@@ -660,6 +656,7 @@ void createFolder(char* path_, int* success, char parentIndex) {
 
     interrupt(0x21,0x02,dirs,0x101,0);
     interrupt(0x21,0x02,dirs+512,0x102,0);
+    printString("aaaa");
     dir_idx = 0;
     //Mencari dir kosong
     while(dir_idx < 64 && dirs[dir_idx*15+1] != 0x00) {
@@ -718,6 +715,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
 	interrupt(0x21, 0x02, sectors, 0x103, 0);
     
     searchFile(dirsOrFile, path, &idx, &success, parentIndex);
+    idx = idx-1; //Trial & error :(
 	interrupt(0x21, 0x20, idx, 0, 0);
     if (success) {
         
@@ -740,7 +738,6 @@ void deleteFile(char *path, int *result, char parentIndex) {
         writeSector(dirsOrFile+512,0x102);
         writeSector(sectors,0x103);
         //Maka berhasil
-        
         *result = 0;
     }
     else {
@@ -760,6 +757,7 @@ void deleteFolder(char *path, int *success, char parentIndex)
     char maps[512];
     char sectors[512];
     char fileName[14];
+    int idxac;
 
     //Inisialisasi awal dengan memasukkan data
     interrupt(0x21,0x02,maps,0x101,0);
@@ -777,10 +775,13 @@ void deleteFolder(char *path, int *success, char parentIndex)
         //Hapus dalam DIrsrFile
         while (idx<1024) {
             //Dilakukan saat dirsOrFile idx ke 0 nya bernilai idx acuan
-            if(dirsOrFile[idx]==idxacuan && idx != idxacuan) {
+            if(dirsOrFile[idx]==idxacuan&& idx != idxacuan) {
+
+                
                 //Jika nilai fileNamenya bukan 0x00
                 if (dirsOrFile[idx+2]!=0x00 ) {
                     clear(fileName,14);
+                    idxac = idx;
                     //salin ke fileName
                     for (i=0; i<14; i++) {
                         fileName[i] = dirsOrFile[idx+i+2];
@@ -793,31 +794,31 @@ void deleteFolder(char *path, int *success, char parentIndex)
                     interrupt(0x21, 0x02, sectors, 0x103, 0);
                 
                     //Hapus folder
-                    dirsOrFile[i] = 0x00;
-                    dirsOrFile[i+1] = 0x00;
-                    dirsOrFile[i+2] = 0x00;
+                    dirsOrFile[idxac] = 0x00;
+                    dirsOrFile[idxac+1] = 0x00;
+                    dirsOrFile[idxac+2] = 0x00;
                     //Hapus semua file yang ada di dalam folder
                     j=0;
                     while (j<16) {
                         //Hapus map dan sectors
-                        maps[sectors[idx*16 + j]]==0x00;
-                        sectors[idx*16+j]==0x00;
+                        maps[sectors[idxac*16 + j]]==0x00;
+                        sectors[idxac*16+j]==0x00;
 
                         j++;
-                        if (sectors[idx*16+j]==0x00 || j>=16) {
+                        if (sectors[idxac*16+j]==0x00 || j>=16) {
                             break;
                         } 
                     }
                 }
             } 
-            idx = (idx+14)+2;
+            idx = (idx+14)+1;
         }
 
         //Jadikan nol id ke 0, idx ke 1 idx ke 2
         dirsOrFile[idx*15]= 0x00;
         dirsOrFile[(idx*15)+1]= 0x00;
         dirsOrFile[(idx*15)+2]= 0x00;
-       writeSector(maps,0x100);
+        writeSector(maps,0x100);
         writeSector(dirsOrFile,0x101);
         writeSector(dirsOrFile+512,0x102);
         writeSector(sectors,0x103);
@@ -840,7 +841,9 @@ void listContent(char currDir) {
                 fileName[j] = dirs[i*16+2+j];
             }
             interrupt(0x21,0x00,"   ",0,0);
+            interrupt(0x21,0x00,"   ",0,0);
             interrupt(0x21,0x00,fileName,0,0);
+            enter();
         }              
     } 
 }
