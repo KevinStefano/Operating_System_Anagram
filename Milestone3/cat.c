@@ -5,10 +5,10 @@ int main () {
     char curdir;
     int success;
     int berhasil;
+    char argv;
 
     //Inisialisasi
     getCurdir(&curdir);
-    printString("File/Folder yang ada :\n");
-    listContent(curdir);
-
+    getArgv(0,&argv);
+    cat(&argv,&success,curdir);
 }

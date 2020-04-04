@@ -7,11 +7,14 @@
 void createFolder(char* path, int* success, char parentIndex);
 void deleteFolder(char *path, int *success, char parentIndex);
 void listContent(char currDir);
+void cat(char *path, int *success, char parentIndex);
+
 
 void putStr(char curdir, char argc, char argv[64][128]);
 void getCurdir(char *curdir);
 void getArgc(char *argc);
 void getArgv(char idx, char *argv); 
+
 
 void createFolder(char* path, int* success, char parentIndex) {
     interrupt(0x21, parentIndex << 8 || 0x21, *path, *success, 0);
@@ -38,5 +41,9 @@ void getArgc(char *argc) {
 void getArgv(char idx, char *argv) {
     interrupt(0x21,0x0A,idx, *argv,0);
 }   
+void cat(char *path, int *success, char parentIndex) {
+    
+    interrupt(0x21, parentIndex << 8 || 0x25, *path, *success, 0);
+}
 
 #endif

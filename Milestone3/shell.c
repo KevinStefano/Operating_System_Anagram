@@ -43,7 +43,7 @@ int mod(int bil1, int bil2);
 int div(int bil1, int bil2);
 int main() {
           
-    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.0 ",0,0);
+    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.5 ",0,0);
     enter();
 
     while (1) {
@@ -147,7 +147,7 @@ int main() {
             fileName[j]=0x00;
             if (fileName[0]!=0x00) {
                 out=0;
-                interrupt(0x21, curdir << 8 | 0x6, &fileName, 0x2000, &out);
+                interrupt(0x21, curdir << 8 | 0x6, &fileName, 0x3000, &out);
                 enter();
                 if (out==1) {
                     printString("Berhasil execute");
@@ -179,6 +179,16 @@ int main() {
                 
             putStr(curdir, argc, argv + 1);
             createFolder(argv[1],&out,curdir);
+            }
+    }
+     else if(type_masukkan == 116) { // cat
+            if(argv[1][0] == 0x00) {
+                interrupt(0x21,0x00,"Nama folder tidak ada untuk cat\n\r",0,0);
+            }
+            else {
+                
+             interrupt(0x21, curdir << 8 | 0x25, argv[1], &out, 0);
+                
             }
     }
 }
@@ -233,6 +243,12 @@ int command(char* input) {
         if(bol==1) {
             bol = 0;
             return 115;
+        }
+
+        isStringSame(masukkan, "cat", &bol);
+        if(bol==1) {
+            bol = 0;
+            return 116;
         }
 }
 

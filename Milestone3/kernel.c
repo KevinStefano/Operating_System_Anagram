@@ -32,6 +32,7 @@ void putStr(char curdir, char argc, char argv[64][128]);
 void getCurdir(char *curdir);
 void getArgc(char *argc);
 void getArgv(char idx, char *argv); 
+void cat(char *path, int *success, char parentIndex);
 
 char input[5];
 char buff[1000];
@@ -44,7 +45,7 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    interrupt(0x21,0x00,"Masukkannnn pilihan kamu\n\r",0,0);
+    interrupt(0x21,0x00,"Masukkan pilihan kamu ...\n\r",0,0);
     interrupt(0x21,0x00,"1.Shell\n\r",0,0);
     interrupt(0x21,0x01,&input,0,0);
     if(input[0] == 0x31) {
@@ -108,6 +109,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0x24:
          listContent(BX);
          break;
+    case 0x25:
+		 cat(BX, CX, AH);
+		 break;
 		
       default:
          printString("Invalid interrupt");
@@ -846,4 +850,14 @@ void listContent(char currDir) {
             enter();
         }              
     } 
+}
+
+void cat(char *path, int *success, char parentIndex) {
+    int berhasil;
+    char file[512];
+    int i =0;
+
+    clear(file, 512);
+    interrupt(0x21, parentIndex << 8 | 0x04, file, path, &berhasil);
+    interrupt(0x21,0x00,file,0,0); 
 }

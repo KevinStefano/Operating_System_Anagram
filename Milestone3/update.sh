@@ -23,4 +23,13 @@ ld86 -o mkdir -d mkdir.o lib_asm.o
 ./loadFile mkdir
 
 
+bcc -ansi -c -o rm.o rm.c
+ld86 -o rm -d rm.o lib_asm.o
+./loadFile rm
+
+
+bcc -ansi -c -o cat.o cat.c
+ld86 -o cat -d cat.o lib_asm.o
+./loadFile cat
+
 echo c | bochs -f if2230.config
