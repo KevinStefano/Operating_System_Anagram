@@ -1,5 +1,4 @@
-# K2-OS-10
-## MILESTONE 3-4
+# Anagram Operating System
 Beberapa hal sudah kami buat dalam program kami dan penambahan dalam shell kami
 
 ---- ANAGRAM 1.7 ----
