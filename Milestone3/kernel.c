@@ -12,6 +12,7 @@ int mod(int bil1, int bil2); //
 int div(int bil1, int bil2); //
 void enter();
 void printInt(int i);
+void logo();
 
 void deleteFile(char *path, int *result, char parentIndex);
 void createFolder(char* path_, int* success, char parentIndex);
@@ -32,7 +33,7 @@ void searchFile(char *dirsOrFile, char *path, char *index, char *success, char p
 int IsStringSameBol(char *stringInput1, char *stringInput2) ;
 void searchIndexbyFileName (char *dir, char* stringInput, char idxParent, char* IdxChildoutput);
 
-void putStr(char curdir, char argc, char argv[64][128]);
+void putStr(char curdir, char argc, char argv[64][14]);
 void getCurdir(char *curdir);
 void getArgc(char *argc);
 void getArgv(char idx, char *argv); 
@@ -49,7 +50,9 @@ char buffer[8192];
 
 int main() {
     makeInterrupt21();
-    interrupt(0x21,0x00,"Masukkan pilihan kamu ... \n\r",0,0);
+    logo();
+    enter();
+    interrupt(0x21,0x00,"Masukkan pilihan kamu ....- \n\r",0,0);
     interrupt(0x21,0x00,"1.Shell\n\r",0,0);
     interrupt(0x21,0x01,&input,0,0);
     if(input[0] == 0x31) {
@@ -595,7 +598,7 @@ void printInt(int i) {
 
 }
 
-void putStr(char curdir, char argc, char argv[64][128]){
+void putStr(char curdir, char argc, char argv[64][14]){
     int idx1 = 0;
     int idx2 = 0;
     int idx3 = 0;
@@ -666,50 +669,38 @@ void createFolder(char* path_, int* success, char parentIndex) {
     char folderName[14];
     char dirs[64*15];
     char succ;
-
+    char fileName[14];
+    char temp[512];
+    char curdir;
+    int j;
+    int l;
     interrupt(0x21,0x02,dirs,0x101,0);
     interrupt(0x21,0x02,dirs+512,0x102,0);
-    printString("aaaa");
-    dir_idx = 0;
-    //Mencari dir kosong
-    while(dir_idx < 64 && dirs[dir_idx*15+1] != 0x00) {
-        dir_idx++;
-    }
-    if(dir_idx == 64) {
-        *success = -2; // Tidak cukup entri di files
-        return;
+    //printString("aaaa");
+    curdir = parentIndex;
+    j=0;
+    clear(fileName,13);
+    while (j<=13) {
+        fileName[j] = path_[j];
+        j++;
     }
 
-    // Mereset path dan folderName yang nanti akan diisi
-    clear(path,64*15);
-    clear(folderName, 14);
-    takeFileNameFromPath(path_,path,folderName);
-    // Validasi apakah parent directory-nya ada
-    searchDirectoryParent(dirs,path,&prntIdx,&succ,parentIndex);
-    if(succ == 1) {
-        // Validasi apakah directory sudah ada
-        searchDirectoryParent(dirs,path_,&tmp,&succ,parentIndex);
-        if(succ == 0) {
-            dirs[dir_idx*14] = prntIdx;
-            dirs[dir_idx*14+1] = 0xFF;
-            lengthString(folderName,&fldrNameLength);
-            for(i = 0; i < 14; i++) {
-                dirs[dir_idx*15+1+i] = 0x00;
-                if(i < fldrNameLength) {
-                    dirs[dir_idx*15+1+i] = folderName[i];
-                }
-            }
-            interrupt(0x21,0x03,dirs,0x101,0);
-            interrupt(0x21,0x03,dirs+512,0x102,0);
-            *success = 0; // Berhasil berhasil hore lolisimo
-        }
-        else {
-            *success = -1; // Folder sudah ada
-        }
+    i=0;
+    while (i<64 && dirs[i*16+1]!=0x00 &&dirs[i*16]!=0x00) {
+        i++;
     }
-    else {
-        *success = -4; // Folder tidak valid
+    if (dirs[i*16+1]==0x00 &&dirs[i*16]==0x00) {
+        dirs[i*16] = curdir;
+        dirs[i*16+1] = 0xFF;
+        //Tulis name
+        for (l=0;l<14;l++) {
+            dirs[i*16+2+l] = fileName[l];
+        }
+        interrupt(0x21,0x03,dirs,257,0);
+    //    interrupt(0x21, 0x20, i, 0, 0); 
+        *success=0;
     }
+    
 }
 
 void deleteFile(char *path, int *result, char parentIndex) {
@@ -729,7 +720,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
     
     searchFile(dirsOrFile, path, &idx, &success, parentIndex);
     idx = idx-1; //Trial & error :(
-	interrupt(0x21, 0x20, idx, 0, 0);
+	// interrupt(0x21, 0x20, idx, 0, 0);
     if (success) {
         
         dirsOrFile[idx*15]= 0x00;
@@ -751,6 +742,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
         writeSector(dirsOrFile+512,0x102);
         writeSector(sectors,0x103);
         //Maka berhasil
+
         *result = 0;
     }
     else {
@@ -853,8 +845,6 @@ void listContent(char currDir) {
             for(j = 0; j < 14; j++) {
                 fileName[j] = dirs[i*16+2+j];
             }
-            interrupt(0x21,0x00,"   ",0,0);
-            interrupt(0x21,0x00,"   ",0,0);
             interrupt(0x21,0x00,fileName,0,0);
             enter();
         }              
@@ -865,10 +855,9 @@ void cat(char *path, int *success, char parentIndex) {
     int berhasil;
     char file[512];
     int i =0;
-
     clear(file, 512);
-    interrupt(0x21, parentIndex << 8 | 0x04, file, path, &berhasil);
-    interrupt(0x21,0x00,file,0,0); 
+    readFile(file,path,&berhasil,parentIndex);
+    printString(file);
 }
 
 void copyFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
@@ -1003,4 +992,20 @@ int IsStringSameBol(char *stringInput1, char *stringInput2) //output bernilai 0/
 void moveFile(char* pathasal, char* pathtujuan, int* result, char parentIndex) {
     copyFile(pathasal,pathtujuan,result,parentIndex);
     deleteFile(pathasal,result,parentIndex);
+}
+
+void logo() {
+printString("          .dWeL  udWbL "); enter();
+printString("         :$$$$$.x$$$$$:"); enter();
+printString("     ... 9$$$$$E|$$$$$E  .."); enter();
+printString("    d$$$e`$$$$$F9$$$$$|o$$$N."); enter();
+printString("   d$$$$$kR$$$---$$$$$z$$$$$&"); enter();
+printString("   $$$$$$$/$$<| |'$$$$&$$$$$$R"); enter();
+printString("   ^*$$$$$$|$$| |$$$F$$$$$$*"); enter();
+printString(" .uu.|R$$$$c$$| |$$$x$$$$P|.uu."); enter();
+printString("o$$$$$u?*$$$/$| |4$$$$$*)o$$$$$c"); enter();
+printString("$$$$$$$$oC#$b#| |#'F@$#)d$$$$$$$$"); enter();
+printString("*$$$$$$$$$NU#(| |)#x#u$$$$$$$$$$P"); enter();
+printString(" |***$$$$$$$NU| |UNb$$$$$$$$***|"); enter();
+printString(" -------------- ----------------- "); enter();
 }

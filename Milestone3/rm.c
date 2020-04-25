@@ -1,21 +1,29 @@
-#include "libFolderIO.h"
-#include "libFileIO.h"
 
 int main () {
     char curdir;
     int success;
     int berhasil;
-    char argv[0][14];
-
+    char argv[14];
+    char temp[512];
+    int idx;
+    int i =0;
     //Inisialisasi
 
-    printString("Proses penghapusan di rm.c\n");
-    getCurdir(&curdir);
-    getArgv(0,argv[0]);
-    deleteFolder(argv[0],&berhasil,curdir);
-    deleteFile(argv[0],&berhasil,curdir);
+    readSector(temp, 512);    
+    //Inisialisasi
+    curdir = temp[0];
+    for (idx=1;idx<=13;idx++) {
+        argv[i] = temp[idx+1];
+        i++;
+    }
+    argv[i] = 0x00;
+    
+    printString("Proses penghapusan di rm.c\n\r");
+    deleteFolder(argv,&berhasil,curdir);
+    deleteFile(argv,&berhasil,curdir);
+    printString("-----Berhasil menghapus ");
+    printString(argv);
+    printString(" (jika ada di file/folder)-----------");
+    interrupt(0x21, 0x6, " ", 0x10000, &berhasil);
 }
 
-
-#include "libFolderIO_imp.h"
-#include "libFileIO_imp.h"

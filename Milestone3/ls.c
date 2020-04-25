@@ -1,18 +1,15 @@
-#include "libFolderIO.h"
-#include "libFileIO.h"
-
 int main () {
     char curdir;
     int success;
-    int berhasil;
+    char berhasil;
+    char temp[512];
 
+    readSector(temp, 512);
     //Inisialisasi
-    getCurdir(&curdir);
-    printString("File/Folder yang ada :\n");
+    curdir = temp[0];
+    printString("File/Folder yang ada :\n\r");
     listContent(curdir);
-
+    printString("-----Berhasil membaca ls.c----------");
+    interrupt(0x21, 0x6, "  ", 0x10000, &berhasil);
 }
 
-
-#include "libFolderIO_imp.h"
-#include "libFileIO_imp.h"

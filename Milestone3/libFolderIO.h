@@ -14,6 +14,6 @@ void putStr(char curdir, char argc, char argv[64][128]);
 void getCurdir(char *curdir);
 void getArgc(char *argc);
 void getArgv(char idx, char *argv); 
-
+void readSector(char *buffer, int sector);
 
 #endif

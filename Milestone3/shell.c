@@ -33,7 +33,7 @@ void createFolder(char* path, int* success, char parentIndex);
 void deleteFolder(char *path, int *success, char parentIndex);
 void listContent(char currDir);
 
-void putStr(char curdir, char argc, char argv[64][128]);
+void putStr(char curdir, char argc, char argv[64][14]);
 void getCurdir(char *curdir);
 void getArgc(char *argc);
 void getArgv(char idx, char *argv); 
@@ -41,10 +41,15 @@ void getArgv(char idx, char *argv);
 
 int mod(int bil1, int bil2);
 int div(int bil1, int bil2);
+
+char temp[512];
 int main() {
           
-    interrupt(0x21, 0x0, "Welcomee to ANAGRAM SHELL 1.5 ",0,0);
+    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.7 ",0,0);
     enter();
+    clear(temp,512);
+    temp[0] = 0xFF;
+    
 
     while (1) {
 
@@ -62,7 +67,7 @@ int main() {
         int idxoutput;
         int out;
         int success = 0;
-        char curdir = 0xFF;
+        char curdir;
         char argc;
         char argv[64][14];
 
@@ -76,6 +81,8 @@ int main() {
         countChar(masukkan,0x20,&sumKataSetelahSpasi);
         makePathtoMatriks(masukkan, 0x20, argv);
 
+        
+
         //Ambil element kedua matriks
         clear(path,14);
         while(j<14) {
@@ -84,7 +91,7 @@ int main() {
         }
 
         //Inisialisasi arc, curdir
-        interrupt(0x21, 0x08 &curdir, 0, 0);
+        curdir = temp[0];
         argc = sumKataSetelahSpasi;
         
         if (type_masukkan == 111) { //cd
@@ -104,9 +111,19 @@ int main() {
                         enter();
                     }
                     else {
-                        interrupt(0x21, 0x00, "Back 1 level ",0,0);
-                        curdir = dirsOrFile[curdir * 16];
-                        putStr(curdir, 0, 0);
+                        interrupt(0x21, 0x00, "Back 1 level for file",0,0);
+                        curdir = dirsOrFile[curdir*16];
+                        j=0;
+                        clear(path,14);
+                        path[0] = curdir;
+                        j++;
+                        i=0;
+                        while(j<14) {
+                            path[j] = argv[1][i];
+                            j++;
+                            i++;
+                        }
+                        writeSector(path,512);
                         enter();
                         }  
                     }
@@ -123,14 +140,25 @@ int main() {
                             printString(argv[1]);
                             enter();
                             curdir = idxoutput;
-                            putStr(curdir,0,0);
+                            
+                            j=0;
+                            clear(path,14);
+                            path[0] = curdir;
+                            j++;
+                            i=0;
+                            while(j<14) {
+                                path[j] = argv[1][i];
+                                j++;
+                                i++;
+                            }
+                            writeSector(path,512);
+                                            
                         }
                 }
             }
         }
         
         else if(type_masukkan == 112) { // ls
-
             putStr(curdir, argc, argv + 1);
             listContent(curdir);
             //interrupt(0x21, curdir << 8 | 0x6, "ls", 0x2000, &out);
@@ -139,24 +167,32 @@ int main() {
             clear(fileName,14);
             i=2;
             j=0;
-            while(masukkan[i]!=0x00 &&j<14) {
-                fileName[j] = masukkan[i];
+            while(argv[0][i]!=0x00 &&j<14) {
+                fileName[j] = argv[0][i];
                 i++;
                 j++;
             }
             fileName[j]=0x00;
+
+
+            j=0;
+            clear(path,14);
+            path[0] = curdir;
+            j++;
+            i=0;
+            while(j<14) {
+                path[j] = argv[1][i];
+                j++;
+                i++;
+            }
+            writeSector(path,512);
+            
             if (fileName[0]!=0x00) {
                 out=0;
+        
+                putStr(curdir, argc, argv + 1);
                 interrupt(0x21, curdir << 8 | 0x6, &fileName, 0x3000, &out);
                 enter();
-                if (out==1) {
-                    printString("Berhasil execute");
-                    enter();
-                }
-                else {
-                    printString("Gagal execute");
-                    enter();
-                }
             }
         }
 
@@ -165,30 +201,41 @@ int main() {
                 interrupt(0x21,0x00,"Paramter rm minimal 1\n\r",0,0);
             }
             else { 
+
                 interrupt(0x21, curdir << 8 | 0x23, argv[1], &out, 0);
                 interrupt(0x21, curdir << 8 | 0x22, argv[1], &out, 0);
                 //printString("Berhasil"); enter();
+                printString("Berhasil delete  directory");
+                enter();
             }
 
         }
         else if(type_masukkan == 115) { // mkdir
-            if(argv[1][0] == 0x00) {
-                interrupt(0x21,0x00,"Nama folder tidak ada untuk mkdir\n\r",0,0);
+          if (sumKataSetelahSpasi>=2) {
+                interrupt(0x21, 0x00, "Masukkan salah", 0,0);
+                enter();
             }
             else {
-                
-            putStr(curdir, argc, argv + 1);
-            createFolder(argv[1],&out,curdir);
+                if(argv[1][0] == 0x00) {
+                    interrupt(0x21,0x00,"Nama folder tidak ada untuk mkdir\n\r",0,0);
+                }
+                else {
+                    // printString(argv[1]);
+
+                    putStr(curdir, argc, argv + 1);
+                    interrupt(0x21, curdir << 8 | 0x21, argv[1], &out, 0);
+                    printString("Berhasil make directory");
+                    enter();
+                }
             }
+            
     }
      else if(type_masukkan == 116) { // cat
             if(argv[1][0] == 0x00) {
                 interrupt(0x21,0x00,"Nama folder tidak ada untuk cat\n\r",0,0);
             }
             else {
-                
              interrupt(0x21, curdir << 8 | 0x25, argv[1], &out, 0);
-                
             }
     }
         else if(type_masukkan == 117) { // cp
@@ -196,7 +243,7 @@ int main() {
                 interrupt(0x21,0x00,"Argumen kurang untuk copy file\n\r",0,0);
             }
             else {
-                interrupt(0x21,curdir << 8 | 0x25, argv+1, argv+2, &out);
+                interrupt(0x21,curdir << 8 | 0x25, argv[1], argv[2], &out);
             }
         }
         else if(type_masukkan == 118) { //mv
@@ -204,10 +251,11 @@ int main() {
                 interrupt(0x21,0x00,"Argumen kurang untuk move file\n\r",0,0);
             }
             else {
-                interrupt(0x21,curdir << 8 | 0x26, argv+1, argv+2, &out);
+                interrupt(0x21,curdir << 8 | 0x26, argv[1], argv[2], &out);
             }
         }
 
+    readSector(temp,512);
 }
 }
 
@@ -808,17 +856,17 @@ int IsStringSameBol(char *stringInput1, char *stringInput2) //output bernilai 0/
 }
 
 void createFolder(char* path, int* success, char parentIndex) {
-    interrupt(0x21, parentIndex << 8 || 0x21, *path, *success, 0);
+    interrupt(0x21, parentIndex << 8 | 0x21, *path, *success, 0);
 }
 
 void deleteFolder(char *path, int *success, char parentIndex){
-    interrupt(0x21, parentIndex << 8 || 0x23, *path, *success, 0);
+    interrupt(0x21, parentIndex << 8 | 0x23, *path, *success, 0);
 }
 void listContent(char currDir) {
     interrupt(0x21, 0x24, currDir, 0, 0);
 }
 
-void putStr(char curdir, char argc, char argv[64][128]){
+void putStr(char curdir, char argc, char argv[64][14]){
     interrupt(0x21,0x07,curdir, argc, argv);
 }
 

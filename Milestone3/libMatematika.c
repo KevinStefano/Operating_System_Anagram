@@ -1,5 +1,4 @@
-#ifndef __LIBMATEMATIKAIMP_H
-#define __LIBMATEMATIKAIMP_H
+
 
 int mod(int bil1, int bil2){
     while(bil1 >= bil2){
@@ -15,5 +14,3 @@ int div(int bil1, int bil2){
     return z-1;
 }
 
-
-#endif

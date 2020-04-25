@@ -1,37 +1,26 @@
-#include "libFolderIO.h"
-#include "libFileIO.h"
 
 int main () {
-    char argc;
     char curdir;
-    char argv[0][14];
     int success;
     int berhasil;
-
+    char argv[14];
+    char temp[512];
+    int idx;
+    int i =0;
     //Inisialisasi
-    getCurdir(&curdir);
-    getArgc(&argc);
-    getArgv(0,argv[0]);
-
-    printString("Proses penambahan mkdir di mkdir.c\n");
-    createFolder(argv[0],&success, curdir);
-    if(success == 0) {
-        printString("Berhasil cuyyy :)");
+    readSector(temp, 512);    
+    //Inisialisasi
+    curdir = temp[0];
+    for (idx=1;idx<=13;idx++) {
+        argv[i] = temp[idx+1];
+        i++;
     }
-    else if(success == -1) {
-        printString("Folder sudah ada\n\r");
-    }
-    else if (success ==-2) {
-        printString("Entry tidak cukup\n\r");
-    }
-    else {
-        printString("Folder tidak valid\n\r");
-    }
-
-    //Deinisialisasi
-    putStr(curdir, argc, argv[0]);
-    interrupt(0x21, curdir << 8 | 0x6, "shell", 0x2000, &berhasil);
+    argv[i] = 0x00;
+    printString("Proses creatte folder di mkdir.c\n\r");
+    createFolder(argv,&berhasil,curdir);
+    printString("-----Berhasil menambahkan ");
+    printString(argv);
+    printString(" -----------");
+    interrupt(0x21, 0x6, "  ", 0x10000, &berhasil);
 }
 
-#include "libFolderIO_imp.h"
-#include "libFileIO_imp.h"

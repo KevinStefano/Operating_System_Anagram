@@ -1,6 +1,3 @@
-#ifndef __LIBFOLDERIOIMP_H
-#define __LIBFOLDERIOIMP_H
-
 
 void createFolder(char* path, int* success, char parentIndex) {
     interrupt(0x21, parentIndex << 8 | 0x21, *path, *success, 0);
@@ -32,4 +29,7 @@ void getArgv(char idx, char *argv) {
     interrupt(0x21,0x0A,idx, *argv,0);
 }   
 
-#endif
+void readSector(char *buffer, int sector) 
+{
+    interrupt(0x13, 0x201, buffer, div(sector, 36) * 0x100 + mod(sector, 18) + 1, mod(div(sector, 18), 2) * 0x100);
+}
