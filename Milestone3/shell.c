@@ -243,7 +243,9 @@ int main() {
                 interrupt(0x21,0x00,"Argumen kurang untuk copy file\n\r",0,0);
             }
             else {
-                interrupt(0x21,curdir << 8 | 0x25, argv[1], argv[2], &out);
+                interrupt(0x21,curdir << 8 | 0x26, argv[1], argv[2], &out);
+                printString("Berhasil copy");
+                enter();
             }
         }
         else if(type_masukkan == 118) { //mv
@@ -251,7 +253,9 @@ int main() {
                 interrupt(0x21,0x00,"Argumen kurang untuk move file\n\r",0,0);
             }
             else {
-                interrupt(0x21,curdir << 8 | 0x26, argv[1], argv[2], &out);
+                interrupt(0x21,curdir << 8 | 0x27, argv[1], argv[2], &out);
+                printString("Berhasil move");
+                enter();
             }
         }
 
