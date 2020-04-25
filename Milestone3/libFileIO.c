@@ -27,12 +27,5 @@ void deleteFile(char *path, int *result, char parentIndex) {
 
 
 
-void printString(char *string){
-    int i = 0;
-    while(string[i] != '\0'){
-        interrupt(0x10, (0xe<<8)+string[i], 0, 0, 0);
-        i++;
-    }
-}
 
 

@@ -52,7 +52,7 @@ int main() {
     makeInterrupt21();
     logo();
     enter();
-    interrupt(0x21,0x00,"Masukkan pilihan kamu ....- \n\r",0,0);
+    interrupt(0x21,0x00,"Masukkan pilihan kamu ... \n\r",0,0);
     interrupt(0x21,0x00,"1.Shell\n\r",0,0);
     interrupt(0x21,0x01,&input,0,0);
     if(input[0] == 0x31) {

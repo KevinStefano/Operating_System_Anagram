@@ -45,7 +45,7 @@ int div(int bil1, int bil2);
 char temp[512];
 int main() {
           
-    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.7 ",0,0);
+    interrupt(0x21, 0x0, "Welcome to ANAGRAM SHELL 1.75 ",0,0);
     enter();
     clear(temp,512);
     temp[0] = 0xFF;
